@@ -108,7 +108,7 @@ public class FolderCopyTests
         {
             foreach (var p in copies.Append(group)) store.Presets.Add(p);
             profile.BackPresetIds = ["tool-crop", group.Id, "tool-image-edit"];
-            var toolbar = new ToolbarPageViewModel(store, loc, AppHost.Get<WindowService>(), AppHost.Get<PresetAvailability>(), AppHost.Get<Filee.Core.Conversion.ConverterCatalog>(), Microsoft.Extensions.Logging.Abstractions.NullLogger<ToolbarPageViewModel>.Instance);
+            using var toolbar = new ToolbarPageViewModel(store, loc, AppHost.Get<WindowService>(), AppHost.Get<PresetAvailability>(), AppHost.Get<Filee.Core.Conversion.ConverterCatalog>(), Microsoft.Extensions.Logging.Abstractions.NullLogger<ToolbarPageViewModel>.Instance);
             toolbar.EditingBack = false;
             Assert.False(toolbar.Insert(copies[0].Id, 0));
             Assert.False(toolbar.Insert(group.Id, 0));
