@@ -16,7 +16,7 @@ using Filee.Core.Watching;
 
 namespace Filee.App.ViewModels.Pages;
 
-public sealed partial class WatchFoldersPageViewModel : ObservableObject, IDisposable
+public sealed partial class WatchFoldersPageViewModel : ObservableObject, IDisposable, IFitsWindowHeight
 {
     private readonly UserDataStore _store;
     private readonly WatchFolderService _service;

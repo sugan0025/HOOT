@@ -50,7 +50,7 @@ public sealed partial class EngineItemViewModel(IConverter converter, EngineStat
     }
 }
 
-public sealed partial class EnginesPageViewModel : ObservableObject, IDisposable
+public sealed partial class EnginesPageViewModel : ObservableObject, IDisposable, IFitsWindowHeight
 {
     private readonly UserDataStore _store;
     private readonly ConverterCatalog _catalog;

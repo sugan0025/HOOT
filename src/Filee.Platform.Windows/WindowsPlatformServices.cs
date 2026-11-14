@@ -15,6 +15,9 @@ public sealed class WindowsPlatformServices : IPlatformServices
     private const string RunKey = @"Software\Microsoft\Windows\CurrentVersion\Run";
     private const string ContextMenuKey = @"Software\Classes\*\shell\Filee";
     private const string AppName = "Filee";
+#if HOOT_WINRT
+      private WindowsMusicSessionWatcher? _musicSessionWatcher;
+#endif
 
     /// <summary>Window classes that belong to Explorer windows and the desktop.</summary>
     private static readonly HashSet<string> FileManagerClasses = new(StringComparer.Ordinal)
@@ -114,11 +117,74 @@ public sealed class WindowsPlatformServices : IPlatformServices
         return null;
     }
 
+    public CompanionEnvironmentSnapshot? GetCompanionEnvironment()
+    {
+        var hwnd = NativeMethods.GetForegroundWindow();
+        PlatformScreenBounds? bounds = null;
+        if (ReadCompanionWindowRect(hwnd, out var rect) && rect.Right > rect.Left && rect.Bottom > rect.Top)
+            bounds = new(rect.Left, rect.Top, rect.Right - rect.Left, rect.Bottom - rect.Top);
+        var powerOk = ReadCompanionPower(out var power);
+        return new(hwnd.ToInt64(), bounds, powerOk && power.AcLineStatus != 255 ? power.AcLineStatus == 1 : null,
+            powerOk && power.BatteryLifePercent <= 100 && (power.BatteryFlag & 128) == 0 ? power.BatteryLifePercent : null);
+    }
+
+    [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+    private struct CompanionRect { public int Left, Top, Right, Bottom; }
+    [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+    private struct CompanionPower { public byte AcLineStatus, BatteryFlag, BatteryLifePercent, SystemStatusFlag; public uint BatteryLifeTime, BatteryFullLifeTime; }
+    [System.Runtime.InteropServices.DllImport("user32.dll", EntryPoint = "GetWindowRect")]
+    [return: System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
+    private static extern bool ReadCompanionWindowRect(nint hwnd, out CompanionRect rect);
+    [System.Runtime.InteropServices.DllImport("kernel32.dll", EntryPoint = "GetSystemPowerStatus")]
+    [return: System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
+    private static extern bool ReadCompanionPower(out CompanionPower power);
+
     public IDisposable? WatchFocusedInputBounds(Action<PlatformScreenBounds?> callback)
     {
         ArgumentNullException.ThrowIfNull(callback);
-        return new WindowsFocusedInputWatcher(GetSystemIdleTime, callback);
+        return new WindowsFocusedInputWatcher(GetSystemIdleTime, context => callback(context?.IsPassword == true ? null : context?.Bounds));
     }
+
+    public IDisposable? WatchFocusedInputContext(Action<FocusedInputContext?> callback) =>
+        new WindowsFocusedInputWatcher(GetSystemIdleTime, callback);
+
+    [SupportedOSPlatform("windows10.0.17763.0")]
+    public IDisposable? WatchMusicSessions(Action<MusicSessionSnapshot?> callback)
+    {
+#if HOOT_WINRT
+        _musicSessionWatcher?.Dispose();
+        var watcher = new WindowsMusicSessionWatcher(callback);
+        _musicSessionWatcher = watcher;
+        return new MusicSessionSubscription(this, watcher);
+#else
+         return null;
+#endif
+    }
+
+    [SupportedOSPlatform("windows10.0.17763.0")]
+    public Task<bool> SkipMusicTrackAsync(string player, bool next) =>
+#if HOOT_WINRT
+        _musicSessionWatcher?.SkipAsync(player, next) ?? Task.FromResult(false);
+#else
+         Task.FromResult(false);
+#endif
+
+#if HOOT_WINRT
+    [SupportedOSPlatform("windows10.0.17763.0")]
+    private sealed class MusicSessionSubscription(WindowsPlatformServices owner, WindowsMusicSessionWatcher watcher) : IDisposable
+    {
+        private bool _disposed;
+
+        public void Dispose()
+        {
+            if (_disposed) return;
+            _disposed = true;
+            watcher.Dispose();
+            if (ReferenceEquals(owner._musicSessionWatcher, watcher))
+                owner._musicSessionWatcher = null;
+        }
+    }
+#endif
 
     public TimeSpan? GetSystemIdleTime()
     {

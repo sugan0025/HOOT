@@ -33,3 +33,6 @@ src/Filee.App/Assets/Fonts/*.ttf
 src/Filee.App/Assets/Fonts/*.otf
 
 scratch/
+
+# Isolated prototype settings and logs
+.prototype-userdata/

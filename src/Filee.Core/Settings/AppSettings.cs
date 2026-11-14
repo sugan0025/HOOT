@@ -343,6 +343,13 @@ public sealed class BlobCompanionSettings
     public bool CinemaDimEnabled { get; set; }
     /// <summary>Offer occasional stretch animations after extended active use. Off by default.</summary>
     public bool StretchReminderEnabled { get; set; }
+    /// <summary>Show local Spotify / Amazon Music track information and previous/next controls on the desktop Blob.</summary>
+    public bool PrivacySunglassesEnabled { get; set; } = true;
+    public bool PowerReactionsEnabled { get; set; } = true;
+    public bool WindowReactionsEnabled { get; set; } = true;
+    public bool MusicDisplayEnabled { get; set; } = true;
+    /// <summary>Look up optional synchronized lyrics from LRCLIB using the current track metadata.</summary>
+    public bool MusicLyricsEnabled { get; set; } = true;
     public BlobAppAwarenessSettings AppAwareness { get; set; } = new();
 }
 

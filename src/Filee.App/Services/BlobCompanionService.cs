@@ -26,6 +26,7 @@ public sealed class BlobCompanionService(UserDataStore store, RadialController r
     private IDisposable? _foregroundChanges;
     private IDisposable? _topmostChanges;
     private IDisposable? _focusedInputWatcher;
+    private IDisposable? _musicSessionChanges;
     private readonly BlobQuipPicker _quipPicker = new();
     private readonly ForegroundActivationTracker _foregroundTracker = new();
     private readonly FileSelectionDebouncer _selectionDebouncer = new(SelectionSettleDelay);
@@ -105,9 +106,17 @@ public sealed class BlobCompanionService(UserDataStore store, RadialController r
             _window.Activity = store.Settings.BlobCompanion.Activity;
             _window.CompanionAudioEnabled = store.Settings.BlobCompanion.AudioEnabled;
             _window.StretchReminderEnabled = store.Settings.BlobCompanion.StretchReminderEnabled;
+            _window.AwarenessEnabled = store.Settings.BlobCompanion.AppAwareness.Enabled;
+            _window.WindowReactionsEnabled = store.Settings.BlobCompanion.AppAwareness.Enabled && store.Settings.BlobCompanion.WindowReactionsEnabled;
+            _window.PrivacySunglassesEnabled = store.Settings.BlobCompanion.PrivacySunglassesEnabled;
+            _window.MusicDisplayEnabled = store.Settings.BlobCompanion.MusicDisplayEnabled;
+            _window.MusicLyricsEnabled = store.Settings.BlobCompanion.MusicLyricsEnabled;
+            _window.MusicTrackCommandRequested = platform.SkipMusicTrackAsync;
+            _window.LyricsLookupRequested = BlobLyricsLookup.LookupAsync;
             _window.IsCompanionEnabled = () => store.Settings.BlobCompanion.IsVisible;
         }
         SyncAwarenessMonitor();
+        SyncMusicSessionMonitor();
         SyncIdleMonitor();
         SyncPresentationMonitor();
     }
@@ -166,6 +175,13 @@ public sealed class BlobCompanionService(UserDataStore store, RadialController r
                 Activity = settings.Activity,
                 CompanionAudioEnabled = settings.AudioEnabled,
                 StretchReminderEnabled = settings.StretchReminderEnabled,
+                AwarenessEnabled = settings.AppAwareness.Enabled,
+                WindowReactionsEnabled = settings.AppAwareness.Enabled && settings.WindowReactionsEnabled,
+                PrivacySunglassesEnabled = settings.PrivacySunglassesEnabled,
+                MusicDisplayEnabled = settings.MusicDisplayEnabled,
+                MusicLyricsEnabled = settings.MusicLyricsEnabled,
+                MusicTrackCommandRequested = platform.SkipMusicTrackAsync,
+                LyricsLookupRequested = BlobLyricsLookup.LookupAsync,
                 IsCompanionEnabled = () => store.Settings.BlobCompanion.IsVisible,
                 PlayHatchOnNextShow = !settings.HatchSeen,
             };
@@ -194,6 +210,7 @@ public sealed class BlobCompanionService(UserDataStore store, RadialController r
             _window.Show();
         SyncTopmostMonitor();
         SyncAwarenessMonitor();
+        SyncMusicSessionMonitor();
         SyncIdleMonitor();
         SyncPresentationMonitor();
     }
@@ -421,10 +438,43 @@ public sealed class BlobCompanionService(UserDataStore store, RadialController r
         EstablishSelectionBaseline(current);
         _foregroundChanges = platform.WatchForegroundChanges(context =>
             Dispatcher.UIThread.Post(() => HandleForegroundEntry(context)));
-        _focusedInputWatcher = platform.WatchFocusedInputBounds(bounds =>
-            Dispatcher.UIThread.Post(() => _window?.SetFocusedInputBounds(bounds)));
+        var epoch = _awarenessEpoch;
+        _focusedInputWatcher = platform.WatchFocusedInputContext(context =>
+            Dispatcher.UIThread.Post(() => { if (epoch == _awarenessEpoch && !_disposed) _window?.SetFocusedInputContext(context); }));
         _awarenessTimer.Start();
     }
+
+    private void SyncMusicSessionMonitor()
+    {
+        var shouldObserve = !_disposed && IsSupported && store.Settings.BlobCompanion.IsVisible
+            && store.Settings.BlobCompanion.MusicDisplayEnabled && _window?.IsVisible == true;
+        if (!shouldObserve)
+        {
+            _musicSessionChanges?.Dispose();
+            _musicSessionChanges = null;
+            _window?.SetMusicSession(null);
+            return;
+        }
+        if (_musicSessionChanges is not null)
+            return;
+
+        _musicSessionChanges = platform.WatchMusicSessions(snapshot => Dispatcher.UIThread.Post(() =>
+        {
+            if (_disposed || !store.Settings.BlobCompanion.IsVisible || !store.Settings.BlobCompanion.MusicDisplayEnabled
+                || _window?.IsVisible != true)
+                return;
+            _window.SetMusicSession(snapshot);
+        }));
+    }
+
+    private void StopMusicSessionMonitor()
+    {
+        _musicSessionChanges?.Dispose();
+        _musicSessionChanges = null;
+        _window?.SetMusicSession(null);
+    }
+
+    private readonly BlobEnvironmentBehavior _environmentBehavior = new();
 
     private void OnAwarenessTick(object? sender, EventArgs e)
     {
@@ -437,6 +487,14 @@ public sealed class BlobCompanionService(UserDataStore store, RadialController r
 
         var context = SafeForegroundContext();
         HandleForegroundEntry(context);
+        if (!BlobAppAwareness.IsShellTransition(context) && !string.Equals(context?.ProcessName, "hoot", StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(context?.ProcessName, "filee", StringComparison.OrdinalIgnoreCase))
+        {
+            var environment = platform.GetCompanionEnvironment();
+            if (_environmentBehavior.Update(environment, platform.GetSystemIdleTime(), DateTime.UtcNow,
+                store.Settings.BlobCompanion.PowerReactionsEnabled, store.Settings.BlobCompanion.WindowReactionsEnabled) is { } reaction)
+                _window.ShowEnvironmentReaction(reaction, environment?.WindowBounds);
+        }
         if (_isExplorerOrDesktopForeground && IsExplorerSelectionEnabled())
         {
             try
@@ -530,18 +588,22 @@ public sealed class BlobCompanionService(UserDataStore store, RadialController r
         }
     }
 
+    private long _awarenessEpoch;
+
     private void StopAwarenessObservers()
     {
+        _awarenessEpoch++;
         _awarenessTimer?.Stop();
         _foregroundChanges?.Dispose();
         _foregroundChanges = null;
         _focusedInputWatcher?.Dispose();
         _focusedInputWatcher = null;
         _foregroundTracker.Reset();
+        _environmentBehavior.ResetObservation();
         _isExplorerOrDesktopForeground = false;
         _selectionDebouncer.Reset();
         _hasSelectionBaseline = false;
-        _window?.SetFocusedInputBounds(null);
+        _window?.SetFocusedInputContext(null);
     }
 
     private ForegroundAppContext? SafeForegroundContext()
@@ -625,6 +687,7 @@ public sealed class BlobCompanionService(UserDataStore store, RadialController r
             _conversionSubscribed = false;
         }
         StopAwarenessObservers();
+        StopMusicSessionMonitor();
         _topmostChanges?.Dispose();
         _topmostChanges = null;
         _awarenessTimer = null;

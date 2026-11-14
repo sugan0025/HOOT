@@ -4,6 +4,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
+    <TargetFramework Condition="$(RuntimeIdentifier.StartsWith('win'))">net10.0-windows10.0.17763.0</TargetFramework>
+    <EnableWindowsTargeting Condition="$(TargetFramework.StartsWith('net10.0-windows'))">true</EnableWindowsTargeting>
     <AssemblyName>Hoot</AssemblyName>
     <RootNamespace>Filee.App</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
@@ -15,9 +17,15 @@
   <ItemGroup>
     <ProjectReference Include="..\Filee.Core\Filee.Core.csproj" />
     <ProjectReference Include="..\Filee.Engines\Filee.Engines.csproj" />
-    <ProjectReference Include="..\Filee.Platform.Windows\Filee.Platform.Windows.csproj" />
     <ProjectReference Include="..\Filee.Platform.Linux\Filee.Platform.Linux.csproj" />
     <ProjectReference Include="..\Filee.Platform.MacOS\Filee.Platform.MacOS.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="$(RuntimeIdentifier.StartsWith('win'))">
+    <ProjectReference Include="..\Filee.Platform.Windows\Filee.Platform.Windows.csproj" SetTargetFramework="TargetFramework=net10.0-windows10.0.17763.0" />
+  </ItemGroup>
+  <ItemGroup Condition="!$(RuntimeIdentifier.StartsWith('win'))">
+    <ProjectReference Include="..\Filee.Platform.Windows\Filee.Platform.Windows.csproj" SetTargetFramework="TargetFramework=net10.0" />
   </ItemGroup>
 
   <ItemGroup>

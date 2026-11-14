@@ -199,7 +199,7 @@ public sealed partial class HistoryItemViewModel : ObservableObject
     }
 }
 
-public sealed partial class HomePageViewModel : ObservableObject, IDisposable
+public sealed partial class HomePageViewModel : ObservableObject, IDisposable, IFitsWindowHeight
 {
     private readonly UserDataStore _store;
     private readonly ILocalizer _loc;

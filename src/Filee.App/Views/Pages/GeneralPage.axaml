@@ -3,8 +3,10 @@
              xmlns:vm="using:Filee.App.ViewModels.Pages"
              x:Class="Filee.App.Views.Pages.GeneralPage"
              x:DataType="vm:GeneralPageViewModel">
-  <StackPanel Spacing="18">
+  <Grid RowDefinitions="Auto,*">
     <TextBlock Classes="h1" Text="{DynamicResource general.title}" />
+    <ScrollViewer Grid.Row="1" Margin="0,20,0,0" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Spacing="18">
 
     <Border Classes="card">
       <StackPanel Spacing="14">
@@ -14,42 +16,6 @@
         </StackPanel>
         <ToggleSwitch Content="{DynamicResource general.start_with_system}" IsChecked="{Binding StartWithSystem}" />
         <ToggleSwitch Content="Sound effects &amp; haptic feedback" IsChecked="{Binding SoundEffects}" />
-        <StackPanel Spacing="8" IsVisible="{Binding IsWindows}">
-          <ToggleSwitch Content="{DynamicResource general.blob_companion}" IsChecked="{Binding BlobCompanionEnabled}" />
-          <TextBlock Classes="label" Text="{DynamicResource general.blob_activity}" />
-          <ComboBox ItemsSource="{Binding BlobActivityChoices}" SelectedItem="{Binding BlobActivity}" MinWidth="240" AutomationProperties.Name="{DynamicResource general.blob_activity}" />
-          <ToggleSwitch Content="{DynamicResource general.blob_audio}" IsChecked="{Binding BlobAudioEnabled}" />
-          <ToggleSwitch Content="{DynamicResource general.blob_cinema_dim}" IsChecked="{Binding CinemaDimEnabled}" />
-          <ToggleSwitch Content="{DynamicResource general.blob_stretch_reminders}" IsChecked="{Binding StretchReminderEnabled}" />
-          <Border Margin="0,8,0,0" Padding="12" CornerRadius="10" Background="{DynamicResource SurfaceAltBrush}">
-            <StackPanel Spacing="6">
-              <ToggleSwitch Content="{DynamicResource general.blob_awareness}" IsChecked="{Binding AppAwarenessEnabled}" />
-              <TextBlock Classes="caption" Text="{DynamicResource general.blob_awareness_hint}" TextWrapping="Wrap" />
-              <WrapPanel IsEnabled="{Binding AppAwarenessAppsEnabled}">
-                <ToggleSwitch Content="HOOT" IsChecked="{Binding AwarenessHoot}" Margin="0,0,12,4" />
-                <ToggleSwitch Content="Claude" IsChecked="{Binding AwarenessClaude}" Margin="0,0,12,4" />
-                <ToggleSwitch Content="ChatGPT" IsChecked="{Binding AwarenessChatGpt}" Margin="0,0,12,4" />
-                <ToggleSwitch Content="Antigravity" IsChecked="{Binding AwarenessAntigravity}" Margin="0,0,12,4" />
-                <ToggleSwitch Content="Chrome" IsChecked="{Binding AwarenessChrome}" Margin="0,0,12,4" />
-                <ToggleSwitch Content="{DynamicResource general.blob_awareness_explorer}" IsChecked="{Binding AwarenessExplorer}" Margin="0,0,12,4" />
-                <ToggleSwitch Content="Netflix" IsChecked="{Binding AwarenessNetflix}" Margin="0,0,12,4" />
-                <ToggleSwitch Content="YouTube" IsChecked="{Binding AwarenessYouTube}" Margin="0,0,12,4" />
-                <ToggleSwitch Content="Amazon Prime Video" IsChecked="{Binding AwarenessPrimeVideo}" Margin="0,0,12,4" />
-                <ToggleSwitch Content="Crunchyroll" IsChecked="{Binding AwarenessCrunchyroll}" Margin="0,0,12,4" />
-                <ToggleSwitch Content="Disney+" IsChecked="{Binding AwarenessDisneyPlus}" Margin="0,0,12,4" />
-                <ToggleSwitch Content="Hulu" IsChecked="{Binding AwarenessHulu}" Margin="0,0,12,4" />
-                <ToggleSwitch Content="Max" IsChecked="{Binding AwarenessMax}" Margin="0,0,12,4" />
-                <ToggleSwitch Content="Hotstar" IsChecked="{Binding AwarenessHotstar}" Margin="0,0,12,4" />
-                <ToggleSwitch Content="VLC" IsChecked="{Binding AwarenessVlc}" Margin="0,0,12,4" />
-                <ToggleSwitch Content="Windows Media Player" IsChecked="{Binding AwarenessWindowsMediaPlayer}" Margin="0,0,12,4" />
-                <ToggleSwitch Content="Spotify" IsChecked="{Binding AwarenessSpotify}" Margin="0,0,12,4" />
-                <ToggleSwitch Content="WhatsApp" IsChecked="{Binding AwarenessWhatsApp}" Margin="0,0,12,4" />
-                <ToggleSwitch Content="Gemini" IsChecked="{Binding AwarenessGemini}" Margin="0,0,12,4" />
-                <ToggleSwitch Content="LinkedIn" IsChecked="{Binding AwarenessLinkedIn}" Margin="0,0,12,4" />
-              </WrapPanel>
-            </StackPanel>
-          </Border>
-        </StackPanel>
         <ToggleSwitch Content="Auto-detect clipboard content (quick convert)" IsChecked="{Binding ClipboardAutoDetect}" />
         <ToggleSwitch x:Name="ShowInDockSwitch" Content="{DynamicResource general.show_in_dock}"
                       IsChecked="{Binding ShowInDock}" IsVisible="{Binding SupportsDockVisibility}" />
@@ -76,6 +42,54 @@
     </Border>
 
     <!-- Where presets set to "Default" save (AppSettings.DefaultOutput). -->
+    <Border Classes="card" IsVisible="{Binding IsWindows}">
+      <StackPanel Spacing="16">
+        <TextBlock Classes="h2" Text="{DynamicResource general.blob_companion}" />
+        <StackPanel Spacing="8" IsVisible="{Binding IsWindows}">
+          <ToggleSwitch Content="{DynamicResource general.blob_companion}" IsChecked="{Binding BlobCompanionEnabled}" />
+          <TextBlock Classes="label" Text="{DynamicResource general.blob_activity}" />
+          <ComboBox ItemsSource="{Binding BlobActivityChoices}" SelectedItem="{Binding BlobActivity}" MinWidth="240" AutomationProperties.Name="{DynamicResource general.blob_activity}" />
+          <ToggleSwitch Content="{DynamicResource general.blob_audio}" IsChecked="{Binding BlobAudioEnabled}" />
+          <ToggleSwitch Content="{DynamicResource general.blob_cinema_dim}" IsChecked="{Binding CinemaDimEnabled}" />
+          <ToggleSwitch Content="{DynamicResource general.blob_stretch_reminders}" IsChecked="{Binding StretchReminderEnabled}" />
+          <TextBlock Classes="h2" Margin="0,12,0,0" Text="{DynamicResource general.blob_music_display}" />
+          <ToggleSwitch Content="{DynamicResource general.blob_music_display}" IsChecked="{Binding MusicDisplayEnabled}" />
+          <ToggleSwitch Content="{DynamicResource general.blob_music_lyrics}" IsChecked="{Binding MusicLyricsEnabled}" />
+          <Border Margin="0,8,0,0" Padding="12" CornerRadius="10" Background="{DynamicResource SurfaceAltBrush}">
+            <StackPanel Spacing="6">
+              <ToggleSwitch Content="{DynamicResource general.blob_awareness}" IsChecked="{Binding AppAwarenessEnabled}" />
+              <TextBlock Classes="caption" Text="{DynamicResource general.blob_awareness_hint}" TextWrapping="Wrap" />
+              <ToggleSwitch Content="Privacy sunglasses" IsChecked="{Binding PrivacySunglassesEnabled}" IsEnabled="{Binding AppAwarenessEnabled}" />
+              <ToggleSwitch Content="Power and battery reactions" IsChecked="{Binding PowerReactionsEnabled}" IsEnabled="{Binding AppAwarenessEnabled}" />
+              <ToggleSwitch Content="Window and monitor reactions" IsChecked="{Binding WindowReactionsEnabled}" IsEnabled="{Binding AppAwarenessEnabled}" />
+              <WrapPanel IsEnabled="{Binding AppAwarenessAppsEnabled}">
+                <ToggleSwitch Content="HOOT" IsChecked="{Binding AwarenessHoot}" Margin="0,0,12,4" />
+                <ToggleSwitch Content="Claude" IsChecked="{Binding AwarenessClaude}" Margin="0,0,12,4" />
+                <ToggleSwitch Content="ChatGPT" IsChecked="{Binding AwarenessChatGpt}" Margin="0,0,12,4" />
+                <ToggleSwitch Content="Antigravity" IsChecked="{Binding AwarenessAntigravity}" Margin="0,0,12,4" />
+                <ToggleSwitch Content="Chrome" IsChecked="{Binding AwarenessChrome}" Margin="0,0,12,4" />
+                <ToggleSwitch Content="{DynamicResource general.blob_awareness_explorer}" IsChecked="{Binding AwarenessExplorer}" Margin="0,0,12,4" />
+                <ToggleSwitch Content="Netflix" IsChecked="{Binding AwarenessNetflix}" Margin="0,0,12,4" />
+                <ToggleSwitch Content="YouTube" IsChecked="{Binding AwarenessYouTube}" Margin="0,0,12,4" />
+                <ToggleSwitch Content="Amazon Prime Video" IsChecked="{Binding AwarenessPrimeVideo}" Margin="0,0,12,4" />
+                <ToggleSwitch Content="Crunchyroll" IsChecked="{Binding AwarenessCrunchyroll}" Margin="0,0,12,4" />
+                <ToggleSwitch Content="Disney+" IsChecked="{Binding AwarenessDisneyPlus}" Margin="0,0,12,4" />
+                <ToggleSwitch Content="Hulu" IsChecked="{Binding AwarenessHulu}" Margin="0,0,12,4" />
+                <ToggleSwitch Content="Max" IsChecked="{Binding AwarenessMax}" Margin="0,0,12,4" />
+                <ToggleSwitch Content="Hotstar" IsChecked="{Binding AwarenessHotstar}" Margin="0,0,12,4" />
+                <ToggleSwitch Content="VLC" IsChecked="{Binding AwarenessVlc}" Margin="0,0,12,4" />
+                <ToggleSwitch Content="Windows Media Player" IsChecked="{Binding AwarenessWindowsMediaPlayer}" Margin="0,0,12,4" />
+                <ToggleSwitch Content="Spotify" IsChecked="{Binding AwarenessSpotify}" Margin="0,0,12,4" />
+                <ToggleSwitch Content="WhatsApp" IsChecked="{Binding AwarenessWhatsApp}" Margin="0,0,12,4" />
+                <ToggleSwitch Content="Gemini" IsChecked="{Binding AwarenessGemini}" Margin="0,0,12,4" />
+                <ToggleSwitch Content="LinkedIn" IsChecked="{Binding AwarenessLinkedIn}" Margin="0,0,12,4" />
+              </WrapPanel>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </StackPanel>
+    </Border>
+
     <Border Classes="card">
       <StackPanel Spacing="10">
         <TextBlock Classes="h2" Text="{DynamicResource general.default_output}" />
@@ -156,5 +170,7 @@
         </StackPanel>
       </DockPanel>
     </Border>
-  </StackPanel>
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
 </UserControl>

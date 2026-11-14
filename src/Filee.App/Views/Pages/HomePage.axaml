@@ -6,13 +6,7 @@
              x:DataType="vm:HomePageViewModel">
   <UserControl.Styles>
     <Style Selector="Border#DropZone">
-      <Setter Property="Background">
-        <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
-          <GradientStop Color="#357F77DD" Offset="0.0" />
-          <GradientStop Color="#22202638" Offset="0.5" />
-          <GradientStop Color="#30151824" Offset="1.0" />
-        </LinearGradientBrush>
-      </Setter>
+      <Setter Property="Background" Value="{DynamicResource GlassCardBrush}" />
       <Setter Property="BorderBrush" Value="#45FFFFFF" />
       <Setter Property="BorderThickness" Value="1.5" />
       <Setter Property="BoxShadow" Value="0 12 36 0 #55000000, 0 1 0 0 #45FFFFFF" />
@@ -43,8 +37,10 @@
     </Style>
   </UserControl.Styles>
 
-  <StackPanel Spacing="22">
+  <Grid RowDefinitions="Auto,*">
     <TextBlock Classes="h1" Text="{DynamicResource home.title}" />
+    <ScrollViewer Grid.Row="1" Margin="0,20,0,0" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Spacing="22">
 
     <!-- macOS without Accessibility permission: the drag gesture can't work yet. Gone once it is given. -->
     <Border IsVisible="{Binding NeedsAccessibility}" Background="{DynamicResource AccentFaintBrush}"
@@ -219,5 +215,7 @@
         </ItemsControl.ItemTemplate>
       </ItemsControl>
     </StackPanel>
-  </StackPanel>
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
 </UserControl>

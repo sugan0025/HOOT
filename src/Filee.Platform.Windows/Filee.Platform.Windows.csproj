@@ -8,10 +8,17 @@
   <PropertyGroup>
     <RootNamespace>Filee.Platform.Windows</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <TargetFrameworks>net10.0;net10.0-windows10.0.17763.0</TargetFrameworks>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <DefineConstants Condition="$(TargetFramework.StartsWith('net10.0-windows'))">$(DefineConstants);HOOT_WINRT</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Filee.Core\Filee.Core.csproj" />
     <InternalsVisibleTo Include="Filee.Platform.Tests" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
+    <Compile Remove="WindowsMusicSessionWatcher.cs" />
   </ItemGroup>
 </Project>

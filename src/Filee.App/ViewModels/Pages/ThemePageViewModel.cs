@@ -14,7 +14,7 @@ using Filee.Core.Settings;
 
 namespace Filee.App.ViewModels.Pages;
 
-public sealed partial class ThemePageViewModel : ObservableObject, IDisposable
+public sealed partial class ThemePageViewModel : ObservableObject, IDisposable, IFitsWindowHeight
 {
     private readonly UserDataStore _store;
     private readonly ILocalizer _loc;

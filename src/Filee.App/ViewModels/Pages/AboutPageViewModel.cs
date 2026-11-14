@@ -8,7 +8,7 @@ using Filee.Core.Settings;
 
 namespace Filee.App.ViewModels.Pages;
 
-public sealed partial class AboutPageViewModel : ObservableObject, IDisposable
+public sealed partial class AboutPageViewModel : ObservableObject, IDisposable, IFitsWindowHeight
 {
     private readonly ILocalizer _loc;
     private readonly UserDataStore _store;

@@ -4,7 +4,7 @@ using Filee.Core.Platform;
 
 namespace Filee.Platform.Windows;
 
-/// <summary>Polls UI Automation for focused input bounds only; it never requests names, values, or text.</summary>
+/// <summary>Polls UI Automation for focused input bounds and the password flag only; it never requests names, values, or text.</summary>
 [SupportedOSPlatform("windows")]
 internal sealed class WindowsFocusedInputWatcher : IDisposable
 {
@@ -21,11 +21,11 @@ internal sealed class WindowsFocusedInputWatcher : IDisposable
     private const int CurrentBoundingRectangleSlot = 43;
 
     private readonly Func<TimeSpan?> _getSystemIdleTime;
-    private readonly Action<PlatformScreenBounds?> _callback;
+    private readonly Action<FocusedInputContext?> _callback;
     private readonly Thread _thread;
     private volatile bool _stopping;
 
-    public WindowsFocusedInputWatcher(Func<TimeSpan?> getSystemIdleTime, Action<PlatformScreenBounds?> callback)
+    public WindowsFocusedInputWatcher(Func<TimeSpan?> getSystemIdleTime, Action<FocusedInputContext?> callback)
     {
         _getSystemIdleTime = getSystemIdleTime;
         _callback = callback;
@@ -41,7 +41,7 @@ internal sealed class WindowsFocusedInputWatcher : IDisposable
     private void Watch()
     {
         IntPtr automation = IntPtr.Zero;
-        PlatformScreenBounds? previous = null;
+        FocusedInputContext? previous = null;
         var comInitialized = false;
         try
         {
@@ -57,11 +57,12 @@ internal sealed class WindowsFocusedInputWatcher : IDisposable
 
             while (!_stopping)
             {
-                PlatformScreenBounds? current = null;
+                FocusedInputContext? current = null;
                 try
                 {
-                    if (_getSystemIdleTime() is { } idle && idle <= TimeSpan.FromSeconds(3))
-                        current = ReadFocusedInputBounds(automation);
+                    current = ReadFocusedInputBounds(automation);
+                    if (current?.IsPassword != true && !(_getSystemIdleTime() is { } idle && idle <= TimeSpan.FromSeconds(3)))
+                        current = null;
                 }
                 catch (Exception ex) when (ex is COMException or InvalidOperationException or UnauthorizedAccessException
                     or InvalidCastException or ArgumentException)
@@ -94,7 +95,7 @@ internal sealed class WindowsFocusedInputWatcher : IDisposable
         }
     }
 
-    private static PlatformScreenBounds? ReadFocusedInputBounds(IntPtr automation)
+    private static FocusedInputContext? ReadFocusedInputBounds(IntPtr automation)
     {
         IntPtr element = IntPtr.Zero;
         try
@@ -106,6 +107,10 @@ internal sealed class WindowsFocusedInputWatcher : IDisposable
             if (element == IntPtr.Zero) return null;
 
             var elementVtable = Marshal.ReadIntPtr(element);
+            var getPassword = Marshal.GetDelegateForFunctionPointer<GetBoolPropertyDelegate>(
+                Marshal.ReadIntPtr(elementVtable, 36 * IntPtr.Size));
+            Marshal.ThrowExceptionForHR(getPassword(element, out var isPassword));
+            if (isPassword) return new FocusedInputContext(null, true);
             var getControlType = Marshal.GetDelegateForFunctionPointer<GetIntPropertyDelegate>(
                 Marshal.ReadIntPtr(elementVtable, CurrentControlTypeSlot * IntPtr.Size));
             var getKeyboardFocusable = Marshal.GetDelegateForFunctionPointer<GetBoolPropertyDelegate>(
@@ -124,8 +129,8 @@ internal sealed class WindowsFocusedInputWatcher : IDisposable
             if (bounds.Right <= bounds.Left || bounds.Bottom <= bounds.Top)
                 return null;
 
-            return new PlatformScreenBounds(bounds.Left, bounds.Top,
-                bounds.Right - bounds.Left, bounds.Bottom - bounds.Top);
+            return new FocusedInputContext(new PlatformScreenBounds(bounds.Left, bounds.Top,
+                bounds.Right - bounds.Left, bounds.Bottom - bounds.Top), false);
         }
         finally
         {

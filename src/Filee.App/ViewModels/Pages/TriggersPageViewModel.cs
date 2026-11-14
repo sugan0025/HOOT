@@ -244,7 +244,7 @@ public sealed partial class FlipOptionsViewModel : ObservableObject
     }
 }
 
-public sealed partial class TriggersPageViewModel : ObservableObject, IDisposable
+public sealed partial class TriggersPageViewModel : ObservableObject, IDisposable, IFitsWindowHeight
 {
     private readonly UserDataStore _store;
     private readonly ILocalizer _loc;

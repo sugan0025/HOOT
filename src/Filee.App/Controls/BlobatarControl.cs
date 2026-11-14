@@ -81,6 +81,8 @@ public class BlobatarControl : Control
     public void NotifyDragOver(bool over) { State.SetDragOver(over); StartLoop(); }
     public void NotifyDrop() { State.SetDragOver(false); State.Drop(); StartLoop(); }
     public void NotifyCompanionDrop() { State.SetDragOver(false); State.CompanionDrop(); StartLoop(); }
+    public void SetMusicSway(bool active) { if (State.MusicSway == active) return; State.MusicSway = active; StartLoop(); }
+    public void SetPrivacy(bool focused, bool glasses) { State.PrivacyFocus = focused; State.PrivacyGlasses = glasses; StartLoop(); }
     public void SetCurious(bool curious) { State.SetCurious(curious); StartLoop(); }
     public void SetPaused(bool paused) { State.SetPaused(paused); StartLoop(); }
     public void SetNapping(bool napping) { State.SetNapping(napping); StartLoop(); }

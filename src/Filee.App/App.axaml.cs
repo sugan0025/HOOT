@@ -428,13 +428,6 @@ public partial class App : Application
             if (engines.Count > 0)
                 AppHost.Get<WindowService>().ShowEngineSetup(engines);
         }
-        else if (!store.Settings.FirstRunCompleted)
-        {
-            // The installer only contains the small engines: offer the large ones on first run (portable zip, or an
-            // installation that skipped the engine page).
-            if (AppHost.Get<EngineDownloadService>().Packages.Any(p => !p.IsInstalled))
-                AppHost.Get<WindowService>().ShowEngineSetup();
-        }
         if (!store.Settings.FirstRunCompleted)
         {
             store.Settings.FirstRunCompleted = true;

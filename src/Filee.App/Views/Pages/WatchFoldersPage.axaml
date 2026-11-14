@@ -13,8 +13,10 @@
       <Setter Property="RenderTransform" Value="rotate(90deg)" />
     </Style>
   </UserControl.Styles>
-  <StackPanel Spacing="18">
+  <Grid RowDefinitions="Auto,*">
     <TextBlock Classes="h1" Text="{DynamicResource watch.title}" />
+    <ScrollViewer Grid.Row="1" Margin="0,20,0,0" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Spacing="18">
     <TextBlock Classes="muted" TextWrapping="Wrap" Text="{DynamicResource watch.description}" />
 
     <Button Classes="accent" Command="{Binding AddCommand}" HorizontalAlignment="Left">
@@ -167,5 +169,7 @@
     </ItemsControl>
 
     <TextBlock Classes="caption" TextWrapping="Wrap" Text="{DynamicResource watch.cli_hint}" />
-  </StackPanel>
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
 </UserControl>

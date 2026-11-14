@@ -58,9 +58,9 @@
     </Style>
   </UserControl.Styles>
 
-  <!-- Keep editor columns usable on narrow windows; the page still scrolls vertically in MainWindow. -->
+  <!-- Keep editor columns usable on narrow windows; the header stays fixed while engine content scrolls independently. -->
   <ScrollViewer x:Name="EditorScroller" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
-    <StackPanel Spacing="16" MinWidth="660" Width="{Binding #EditorScroller.Viewport.Width}" HorizontalAlignment="Left">
+    <Grid RowDefinitions="Auto,*" MinWidth="660" Width="{Binding #EditorScroller.Viewport.Width}" Height="{Binding #EditorScroller.Viewport.Height}">
       <DockPanel>
         <Button DockPanel.Dock="Right" Command="{Binding RecheckCommand}">
           <StackPanel Orientation="Horizontal" Spacing="6">
@@ -75,6 +75,8 @@
           <TextBlock Classes="muted" TextWrapping="Wrap" Text="{DynamicResource engines.description}" />
         </StackPanel>
       </DockPanel>
+    <ScrollViewer Grid.Row="1" Margin="0,20,0,0" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Spacing="18">
 
       <!-- Unified Conversion Pipeline Interface: Liquid Morphed Glass Master Container -->
       <controls:GlassCard Classes="liquid-glass-master" Padding="14,18,14,18" Margin="0,2,0,16">
@@ -236,5 +238,7 @@
       </controls:GlassCard>
 
     </StackPanel>
+    </ScrollViewer>
+  </Grid>
   </ScrollViewer>
 </UserControl>

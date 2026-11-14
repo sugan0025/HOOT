@@ -38,6 +38,11 @@ public sealed class BlobatarState
     private bool _companionMode;
     private bool _suppressAutonomousWinks;
     private double _acc;
+    public bool PrivacyGlasses { get; set; }
+    public bool PrivacyFocus { get; set; }
+    public bool MusicSway { get; set; }
+    private double _swayPhase;
+    public double GlassesProgress { get; private set; }
 
     private BlobatarBrushCache? _cache;
     internal BlobatarBrushCache Cache => _cache ??= new();
@@ -110,8 +115,8 @@ public sealed class BlobatarState
         _look.Update(0f, AppHost.TryGet<CircadianService>(), tone);
     }
 
-    public void TriggerBounce(double impulse = 0.45) => _physics.Bounce((float)impulse);
-    public void TriggerTiltWobble(double degrees = 8.0) => _physics.Wobble((float)degrees);
+    public void TriggerBounce(double impulse = 0.45) => _physics.Bounce((float)(_companionMode ? Math.Clamp(impulse, -.8, .8) : impulse));
+    public void TriggerTiltWobble(double degrees = 8.0) => _physics.Wobble((float)(_companionMode ? Math.Clamp(degrees, -10, 10) : degrees));
     public void TriggerBlink(int count = 1) => _physics.Blink(count);
     public void TriggerBoredHop() => _physics.BoredHop();
     public void CancelBoredHop() => _physics.CancelBoredHop();
@@ -181,6 +186,13 @@ public sealed class BlobatarState
     {
         dt = Math.Clamp(dt, 0.0, 0.25);
         _physics.ReduceMotion = !motionEnabled;
+        var sway = _companionMode && MusicSway && motionEnabled && !_paused && !_napping && !_dragOver && !_curious && !PrivacyFocus;
+        if (sway) _swayPhase += dt;
+        var glassesTarget = _companionMode && PrivacyGlasses && !_paused && !_napping ? 1d : 0d;
+        var glassesStep = dt / (glassesTarget > GlassesProgress ? .35 : .30);
+        GlassesProgress = !motionEnabled ? glassesTarget : GlassesProgress < glassesTarget
+            ? Math.Min(glassesTarget, GlassesProgress + glassesStep)
+            : Math.Max(glassesTarget, GlassesProgress - glassesStep);
 
         _look.Update((float)dt, AppHost.TryGet<CircadianService>(), _tone);
         var look = _look.Current;
@@ -201,7 +213,7 @@ public sealed class BlobatarState
 
         var inp = new BlobatarInput
         {
-            Pointer = _pointer,
+            Pointer = _companionMode && PrivacyFocus ? new System.Numerics.Vector2(15, 20) : _pointer,
             DragOver = _dragOver,
             Curious = _curious,
             Paused = _paused,
@@ -210,7 +222,7 @@ public sealed class BlobatarState
             SuppressAutonomousWinks = _suppressAutonomousWinks,
             DragLean = _dragLean,
             DragStretch = _dragStretch,
-            RestLean = _restLean,
+            RestLean = _restLean + (sway ? (float)(Math.Sin(_swayPhase * 1.4) * 1.2) : 0),
             Fullness = _fullness,
             CompanionEyeRoll = eyeRoll,
             Hover = _hover,
@@ -229,7 +241,7 @@ public sealed class BlobatarState
         _physics.Compose();
 
         if (_audio) BlobatarAudio.Shared.SetTimeOfDay(look.Wm, look.Wa, look.Wn);
-        return _physics.Animating || _look.Transitioning;
+        return sway || _physics.Animating || _look.Transitioning || Math.Abs(GlassesProgress - glassesTarget) > .001;
     }
 }
 
@@ -472,6 +484,32 @@ public static class BlobatarRenderer
             // Eyes are drawn outside the body matrix (translation only) so gaze stays exact while the body breathes.
             DrawEye(context, f.Left, 4.8, 4.0, state.LeftEyeTiltDeg, state.LeftForeshortenX, f, state.HappyCurve, look, cache, 0.0);
             DrawEye(context, f.Right, 4.6, 3.8, state.RightEyeTiltDeg, state.RightForeshortenX, f, state.HappyCurve, look, cache, 0.0);
+            if (state.CompanionMode && state.GlassesProgress > 0)
+                DrawPrivacyGlasses(context, f, state.GlassesProgress);
+        }
+    }
+
+    private static readonly IBrush GlassesLens = new SolidColorBrush(Color.Parse("#FF151B31"));
+    private static readonly IPen GlassesFrame = new Pen(new SolidColorBrush(Color.Parse("#FFBFB5ED")), .8);
+    private static readonly IPen GlassesShine = new Pen(new SolidColorBrush(Color.Parse("#997C91BD")), .7);
+
+    private static void DrawPrivacyGlasses(DrawingContext context, BlobatarFrame frame, double progress)
+    {
+        var eased = progress * progress * (3 - 2 * progress);
+        var left = Plump(frame.Left.Center.X, frame.Left.Center.Y);
+        var right = Plump(frame.Right.Center.X, frame.Right.Center.Y);
+        var angle = Math.Atan2(right.Y - left.Y, right.X - left.X);
+        var width = Math.Sqrt(Math.Pow(right.X - left.X, 2) + Math.Pow(right.Y - left.Y, 2));
+        using (context.PushOpacity(eased))
+        using (context.PushTransform(Matrix.CreateScale(1 + (frame.Sx - 1) * .6, 1 + (frame.Sy - 1) * .6)
+            * Matrix.CreateRotation(angle) * Matrix.CreateTranslation((left.X + right.X) / 2,
+                (left.Y + right.Y) / 2 - (1 - eased) * 15)))
+        {
+            context.DrawRectangle(GlassesLens, GlassesFrame, new Rect(-width / 2 - 5, -3.5, 10, 7), 2, 2);
+            context.DrawRectangle(GlassesLens, GlassesFrame, new Rect(width / 2 - 5, -3.5, 10, 7), 2, 2);
+            context.DrawLine(GlassesFrame, new Point(-width / 2 + 5, -1), new Point(width / 2 - 5, -1));
+            context.DrawLine(GlassesShine, new Point(-width / 2 - 3, -2), new Point(-width / 2, 0));
+            context.DrawLine(GlassesShine, new Point(width / 2 - 3, -2), new Point(width / 2, 0));
         }
     }
 

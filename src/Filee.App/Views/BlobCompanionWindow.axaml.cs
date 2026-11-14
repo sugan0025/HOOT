@@ -4,7 +4,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Shapes;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
@@ -29,6 +31,10 @@ public partial class BlobCompanionWindow : Window
     private readonly DispatcherTimer _hugTimer;
     private readonly DispatcherTimer _napTimer;
     private readonly DispatcherTimer _chewTimer;
+    private readonly DispatcherTimer _dragLeaveTimer;
+    private readonly DispatcherTimer _musicProgressTimer;
+    private readonly DispatcherTimer _musicParticleTimer;
+    private readonly Avalonia.Controls.Shapes.Path[] _musicParticles;
     private readonly CancellationTokenSource _lifetime = new();
     private CancellationTokenSource _thoughtCancellation = new();
     private CancellationTokenSource? _wakeCancellation;
@@ -79,6 +85,21 @@ public partial class BlobCompanionWindow : Window
     private double _conversionProgress;
     private readonly Stopwatch _conversionClock = new();
     private PlatformScreenBounds? _focusedInputBounds;
+    private bool _passwordFocused;
+    private DateTime _lastPrivacyQuip;
+    private int _privacyQuipIndex;
+    private bool _privacySunglassesEnabled = true;
+    public bool PrivacySunglassesEnabled
+    {
+        get => _privacySunglassesEnabled;
+        set { _privacySunglassesEnabled = value; Blob.SetPrivacy(_passwordFocused, _passwordFocused && value); }
+    }
+    private DateTime _lastEnvironmentQuip, _environmentUntil, _lastInspection;
+    private Point? _environmentGaze;
+    private PixelRect? _dragStartMonitor;
+    public bool WindowReactionsEnabled { get; set; } = true;
+    public bool AwarenessEnabled { get; set; }
+
     private DateTime _fileDragSince;
     private DateTime _pressStarted;
     private DateTime _lastDragAt;
@@ -91,6 +112,20 @@ public partial class BlobCompanionWindow : Window
     private bool _playHatchOnNextShow;
     private int _lastBehavior = -1;
     private int _dragSequence;
+    private MusicSessionSnapshot? _musicSession;
+    private bool _trackCardHovered;
+    private bool _previousSkipRejected;
+    private bool _nextSkipRejected;
+    private bool _musicDisplayEnabled = true;
+    private bool _musicLyricsEnabled = true;
+    private bool _musicPaletteActive;
+    private bool _musicTransitionPending;
+    private int _musicTransitionVersion;
+    private string? _activeAppReactionKey;
+    private string? _lyricsSessionKey;
+    private BlobLyricsResult? _lyrics;
+    private CancellationTokenSource? _lyricsCancellation;
+    private readonly Stopwatch _musicParticleClock = new();
 
     public BlobCompanionWindow(RadialController radial, TriggerService triggers)
     {
@@ -115,6 +150,18 @@ public partial class BlobCompanionWindow : Window
         _napTimer.Tick += OnNapTimerTick;
         _chewTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(33) };
         _chewTimer.Tick += OnChewTimerTick;
+        _dragLeaveTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(90) };
+        _dragLeaveTimer.Tick += OnDragLeaveTimerTick;
+        _musicProgressTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(200) };
+        _musicProgressTimer.Tick += (_, _) => RefreshMusicProgress();
+        _musicParticles = [MusicParticle0, MusicParticle1, MusicParticle2, MusicParticle3, MusicParticle4, MusicParticle5];
+        foreach (var particle in _musicParticles)
+            particle.RenderTransform = new RotateTransform();
+        ThoughtCloud.PointerEntered += (_, _) => SetTrackCardHovered(true);
+        ThoughtCloud.PointerExited += (_, _) => SetTrackCardHovered(false);
+        _musicParticleTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(34) };
+        _musicParticleTimer.Tick += (_, _) => AnimateMusicParticles();
+        Motion.Changed += OnMusicMotionChanged;
         PointerPressed += OnPointerPressed;
         PointerMoved += OnPointerMoved;
         PointerReleased += OnPointerReleased;
@@ -133,6 +180,12 @@ public partial class BlobCompanionWindow : Window
             _hugTimer.Stop();
             _napTimer.Stop();
             _chewTimer.Stop();
+            _dragLeaveTimer.Stop();
+            _musicProgressTimer.Stop();
+            _musicParticleTimer.Stop();
+            Motion.Changed -= OnMusicMotionChanged;
+            CancelLyricsLookup(clear: true);
+            _lifetime.Dispose();
             _fileTypeIcon?.Dispose();
             _fileTypeIcon = null;
         };
@@ -141,6 +194,10 @@ public partial class BlobCompanionWindow : Window
         DragDrop.AddDragOverHandler(Root, OnDragOver);
         DragDrop.AddDragLeaveHandler(Root, OnDragLeave);
         DragDrop.AddDropHandler(Root, OnDrop);
+        DragDrop.AddDragEnterHandler(TrackContent, OnDragEnter);
+        DragDrop.AddDragOverHandler(TrackContent, OnDragOver);
+        DragDrop.AddDragLeaveHandler(TrackContent, OnDragLeave);
+        DragDrop.AddDropHandler(TrackContent, OnDrop);
         _nextBehavior = DateTime.UtcNow + NextBoredomDelay();
     }
 
@@ -210,6 +267,7 @@ public partial class BlobCompanionWindow : Window
                 if (_conversionActive && !_cinemaDimActive && IsVisible) _chewTimer.Start();
                 ApplyPendingConversionResult();
             }
+            RefreshMusicCard();
         }
     }
 
@@ -218,7 +276,394 @@ public partial class BlobCompanionWindow : Window
         && !_napping && _wakeCancellation is null;
 
     public bool IsQuipsQuiet => DateTime.UtcNow < _quipsQuietUntil;
+    public bool HasActiveMusicSession => BlobMusicPresentation.IsDisplayable(_musicSession);
+    public Func<string, bool, Task<bool>>? MusicTrackCommandRequested { get; set; }
+    public bool MusicDisplayEnabled
+    {
+        get => _musicDisplayEnabled;
+        set
+        {
+            if (_musicDisplayEnabled == value) return;
+            _musicDisplayEnabled = value;
+            if (!value) SetMusicSession(null);
+            else RefreshMusicCard();
+        }
+    }
+    public bool MusicLyricsEnabled
+    {
+        get => _musicLyricsEnabled;
+        set
+        {
+            if (_musicLyricsEnabled == value) return;
+            _musicLyricsEnabled = value;
+            if (!value) CancelLyricsLookup(clear: true);
+            else if (_musicSession is { } session) StartLyricsLookup(session);
+            RefreshMusicCard();
+        }
+    }
+    internal Func<MusicSessionSnapshot, CancellationToken, Task<BlobLyricsResult?>>? LyricsLookupRequested { get; set; }
     public bool StretchReminderEnabled { get => _stretchReminderEnabled; set => _stretchReminderEnabled = value; }
+
+    public void SetMusicSession(MusicSessionSnapshot? snapshot)
+    {
+        var usable = _musicDisplayEnabled && BlobMusicPresentation.IsDisplayable(snapshot) ? snapshot : null;
+        if (Equals(_musicSession, usable)) return;
+        if (_musicTransitionPending && usable is null)
+        {
+            _musicTransitionPending = false;
+            _musicTransitionVersion++;
+            ThoughtPopup.IsOpen = false;
+            ThoughtCloud.Opacity = 0;
+        }
+        var wasMusicActive = HasActiveMusicSession;
+        var oldLyricsKey = _lyricsSessionKey;
+        _musicSession = usable;
+        _previousSkipRejected = false;
+        _nextSkipRejected = false;
+        var newLyricsKey = usable is null ? null : LyricsKey(usable);
+        if (!string.Equals(oldLyricsKey, newLyricsKey, StringComparison.Ordinal))
+        {
+            CancelLyricsLookup(clear: true);
+            _lyricsSessionKey = newLyricsKey;
+            if (_musicLyricsEnabled && usable is not null)
+                StartLyricsLookup(usable);
+        }
+
+        if (wasMusicActive && usable is null && TrackContent.IsVisible)
+        {
+            TrackContent.Opacity = 0;
+            var transitionVersion = ++_musicTransitionVersion;
+            DispatcherTimer.RunOnce(() =>
+            {
+                if (transitionVersion != _musicTransitionVersion || HasActiveMusicSession)
+                    return;
+                TrackContent.IsVisible = false;
+                _trackCardHovered = false;
+                RefreshMusicCard();
+            }, TimeSpan.FromMilliseconds(250));
+            return;
+        }
+        RefreshMusicCard();
+    }
+
+    private void RefreshMusicCard()
+    {
+        if (_musicTransitionPending)
+            return;
+        var canShow = HasActiveMusicSession && IsVisible && !_paused && !_napping && !_dropPending && !_radial.IsVisible && !_conversionActive
+            && !_thoughtShowing;
+        if (canShow && _musicSession is { } session)
+        {
+            Blob.SetMusicSway(session.State == MusicPlaybackState.Playing);
+            SetMusicPalette(true);
+            TrackTitle.Text = BlobMusicPresentation.Title(session);
+            TrackArtist.Text = BlobMusicPresentation.Artist(session);
+            TrackArtist.IsVisible = !string.IsNullOrWhiteSpace(TrackArtist.Text);
+            LyricsPanel.IsVisible = _musicLyricsEnabled;
+            RefreshCurrentLyrics();
+            TrackTimeline.IsVisible = session.Duration > TimeSpan.Zero;
+            RefreshMusicProgress();
+            if (session.State == MusicPlaybackState.Playing
+                && (TrackTimeline.IsVisible || (_musicLyricsEnabled && _lyrics is { SyncedLines.Count: > 0 })))
+                _musicProgressTimer.Start();
+            else
+                _musicProgressTimer.Stop();
+            PreviousTrackButton.IsVisible = session.CanSkipPrevious;
+            PreviousTrackButton.IsEnabled = session.CanSkipPrevious && !_previousSkipRejected;
+            NextTrackButton.IsVisible = session.CanSkipNext;
+            NextTrackButton.IsEnabled = session.CanSkipNext && !_nextSkipRejected;
+
+            ThoughtText.IsVisible = false;
+            TrackContent.IsVisible = true;
+            TrackContent.Opacity = 1;
+            UpdateTrackControls();
+            ThoughtPopup.IsHitTestVisible = true;
+            ThoughtPopup.IsOpen = true;
+            ThoughtCloud.Opacity = 1;
+            return;
+        }
+
+        TrackContent.IsVisible = false;
+        TrackContent.Opacity = 0;
+        LyricsPanel.IsVisible = false;
+        TrackButtons.IsVisible = false;
+        TrackTimeline.IsVisible = false;
+        _musicProgressTimer.Stop();
+        Blob.SetMusicSway(false);
+        SetMusicPalette(false);
+        ThoughtPopup.IsHitTestVisible = false;
+        ThoughtText.IsVisible = true;
+        if (!_thoughtShowing)
+        {
+            ThoughtPopup.IsOpen = false;
+            ThoughtCloud.Opacity = 0;
+        }
+    }
+
+    private void RefreshMusicProgress()
+    {
+        if (_musicSession is not { } session)
+            return;
+        var position = BlobMusicPresentation.PositionAt(session, DateTimeOffset.UtcNow);
+        if (session.Duration > TimeSpan.Zero)
+        {
+            TrackElapsed.Text = BlobMusicPresentation.FormatTime(position);
+            TrackDuration.Text = BlobMusicPresentation.FormatTime(session.Duration);
+            TrackProgressFill.Width = Math.Clamp(position.TotalSeconds / session.Duration.TotalSeconds, 0, 1) * 176;
+        }
+        RefreshCurrentLyrics();
+    }
+
+    private void RefreshCurrentLyrics()
+    {
+        if (!_musicLyricsEnabled)
+        {
+            LyricsPanel.IsVisible = false;
+            return;
+        }
+        LyricsPanel.IsVisible = HasActiveMusicSession;
+        if (_lyrics is null)
+        {
+            LyricsPanel.IsVisible = false;
+            LyricsCurrent.Text = string.Empty;
+            LyricsNext.Text = string.Empty;
+            LyricsNext.IsVisible = false;
+            return;
+        }
+
+        if (_lyrics.SyncedLines.Count > 0 && _musicSession is { } session)
+        {
+            var position = BlobMusicPresentation.PositionAt(session, DateTimeOffset.UtcNow);
+            var index = 0;
+            for (var i = 0; i < _lyrics.SyncedLines.Count; i++)
+            {
+                if (_lyrics.SyncedLines[i].At > position) break;
+                index = i;
+            }
+            LyricsCurrent.Text = _lyrics.SyncedLines[index].Text;
+            LyricsNext.Text = index + 1 < _lyrics.SyncedLines.Count ? _lyrics.SyncedLines[index + 1].Text : string.Empty;
+            LyricsNext.IsVisible = false;
+            return;
+        }
+
+        if (_lyrics.PlainLines.Count > 0)
+        {
+            LyricsCurrent.Text = _lyrics.PlainLines[0];
+            LyricsNext.Text = _lyrics.PlainLines.Count > 1 ? _lyrics.PlainLines[1] : string.Empty;
+            LyricsNext.IsVisible = false;
+        }
+        else
+        {
+            LyricsPanel.IsVisible = false;
+            LyricsCurrent.Text = string.Empty;
+            LyricsNext.Text = string.Empty;
+            LyricsNext.IsVisible = false;
+        }
+    }
+
+    private static string LyricsKey(MusicSessionSnapshot session) =>
+        $"{session.Player}\u001f{session.Title}\u001f{session.Artist}\u001f{session.Album}\u001f{session.Duration.Ticks}";
+
+    private void StartLyricsLookup(MusicSessionSnapshot session)
+    {
+        if (!_musicLyricsEnabled || LyricsLookupRequested is not { } lookup)
+            return;
+        var key = LyricsKey(session);
+        if (!string.Equals(_lyricsSessionKey, key, StringComparison.Ordinal))
+        {
+            CancelLyricsLookup(clear: true);
+            _lyricsSessionKey = key;
+        }
+        var cancellation = CancellationTokenSource.CreateLinkedTokenSource(_lifetime.Token);
+        _lyricsCancellation = cancellation;
+        _ = LoadLyricsAsync(session, key, lookup, cancellation);
+    }
+
+    private async Task LoadLyricsAsync(MusicSessionSnapshot session, string key,
+        Func<MusicSessionSnapshot, CancellationToken, Task<BlobLyricsResult?>> lookup, CancellationTokenSource cancellation)
+    {
+        BlobLyricsResult? result = null;
+        try { result = await lookup(session, cancellation.Token).ConfigureAwait(false); }
+        catch (OperationCanceledException) { }
+        catch (Exception ex) when (ex is not OutOfMemoryException) { }
+        if (cancellation.IsCancellationRequested) return;
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (_lifetime.IsCancellationRequested || !_musicLyricsEnabled || !HasActiveMusicSession
+                || !string.Equals(_lyricsSessionKey, key, StringComparison.Ordinal))
+                return;
+            _lyrics = result;
+            if (ReferenceEquals(_lyricsCancellation, cancellation))
+            {
+                _lyricsCancellation.Dispose();
+                _lyricsCancellation = null;
+            }
+            RefreshMusicCard();
+        });
+    }
+
+    private void CancelLyricsLookup(bool clear)
+    {
+        var cancellation = _lyricsCancellation;
+        _lyricsCancellation = null;
+        if (cancellation is not null)
+        {
+            cancellation.Cancel();
+            cancellation.Dispose();
+        }
+        if (clear)
+        {
+            _lyrics = null;
+            LyricsCurrent.Text = string.Empty;
+            LyricsNext.Text = string.Empty;
+            LyricsNext.IsVisible = false;
+        }
+    }
+
+    private void SetMusicPalette(bool active)
+    {
+        if (_musicPaletteActive == active)
+            return;
+        _musicPaletteActive = active;
+        ThoughtCloud.Background = active ? CreateMusicGlassBrush() : new SolidColorBrush(Color.Parse("#FFFDFEFF"));
+        ThoughtCloud.BorderBrush = new SolidColorBrush(Color.Parse(active ? "#DFD4CCFF" : "#FF6E58A8"));
+        TrackTitle.Foreground = new SolidColorBrush(Color.Parse(active ? "#FFFBFAFF" : "#FF392B5A"));
+        TrackArtist.Foreground = new SolidColorBrush(Color.Parse(active ? "#FFE1DCF2" : "#FF665B78"));
+        LyricsCurrent.Foreground = new SolidColorBrush(Color.Parse(active ? "#FFFFFFFF" : "#FF302047"));
+        LyricsNext.Foreground = new SolidColorBrush(Color.Parse(active ? "#FFD8D3E9" : "#FF766C89"));
+        TrackElapsed.Foreground = new SolidColorBrush(Color.Parse(active ? "#FFE1DCF2" : "#FF665B78"));
+        TrackDuration.Foreground = new SolidColorBrush(Color.Parse(active ? "#FFE1DCF2" : "#FF665B78"));
+        TrackProgressTrack.Background = new SolidColorBrush(Color.Parse(active ? "#775A657E" : "#FFDAD7E3"));
+        TrackProgressFill.Background = new SolidColorBrush(Color.Parse(active ? "#FFD8CEFF" : "#FF7969D4"));
+        if (active)
+        {
+            foreach (var particle in _musicParticles)
+                particle.Opacity = 0;
+            MusicParticleCanvas.IsVisible = true;
+            _musicParticleClock.Start();
+            _lastSnowTime = _musicParticleClock.Elapsed.TotalSeconds;
+            if (Motion.Enabled) _musicParticleTimer.Start();
+            AnimateMusicParticles();
+        }
+        else
+        {
+            _musicParticleTimer.Stop();
+            _musicParticleClock.Stop();
+            MusicParticleCanvas.IsVisible = false;
+            foreach (var particle in _musicParticles)
+                particle.Opacity = 0;
+        }
+    }
+
+    private static LinearGradientBrush CreateMusicGlassBrush()
+    {
+        var brush = new LinearGradientBrush
+        {
+            StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative),
+            EndPoint = new RelativePoint(1, 1, RelativeUnit.Relative),
+        };
+        brush.GradientStops.Add(new GradientStop(Color.Parse("#A7495A79"), 0));
+        brush.GradientStops.Add(new GradientStop(Color.Parse("#8D263A56"), .48));
+        brush.GradientStops.Add(new GradientStop(Color.Parse("#A3282D50"), 1));
+        return brush;
+    }
+
+    private readonly double[] _snowY = [-12, -35, -62, -86, -110, -140];
+    private double _lastSnowTime;
+
+    private void OnMusicMotionChanged(object? sender, EventArgs e)
+    {
+        if (Motion.Enabled && _musicPaletteActive && IsVisible)
+        {
+            _lastSnowTime = _musicParticleClock.Elapsed.TotalSeconds;
+            _musicParticleTimer.Start();
+        }
+        else
+        {
+            _musicParticleTimer.Stop();
+            foreach (var particle in _musicParticles) particle.Opacity = 0;
+        }
+    }
+
+    private void AnimateMusicParticles()
+    {
+        if (!_musicPaletteActive || !MusicParticleCanvas.IsVisible || !IsVisible || !Motion.Enabled)
+            return;
+        ReadOnlySpan<double> anchors = [.08, .25, .43, .62, .79, .92];
+        ReadOnlySpan<double> speeds = [12, 17, 14, 19, 11, 16];
+        var elapsed = _musicParticleClock.Elapsed.TotalSeconds;
+        var delta = Math.Clamp(elapsed - _lastSnowTime, 0, .1);
+        _lastSnowTime = elapsed;
+        var height = MusicParticleCanvas.Bounds.Height;
+        if (height <= 0) return;
+        for (var i = 0; i < _musicParticles.Length; i++)
+        {
+            _snowY[i] += speeds[i] * delta;
+            if (_snowY[i] > height + 12) _snowY[i] = -12;
+            Canvas.SetLeft(_musicParticles[i], anchors[i] * Math.Max(0, MusicParticleCanvas.Bounds.Width - 16)
+                + Math.Sin(elapsed * .65 + i * 1.7) * 4);
+            Canvas.SetTop(_musicParticles[i], _snowY[i]);
+            _musicParticles[i].Opacity = .3;
+            if (_musicParticles[i].RenderTransform is RotateTransform rotation)
+                rotation.Angle = Math.Sin(elapsed * .6 + i) * 12;
+        }
+    }
+
+    private int _hoverVersion;
+
+    private void SetTrackCardHovered(bool hovered)
+    {
+        var version = ++_hoverVersion;
+        if (!hovered)
+        {
+            DispatcherTimer.RunOnce(() =>
+            {
+                if (version != _hoverVersion) return;
+                _trackCardHovered = false;
+                UpdateTrackControls();
+            }, TimeSpan.FromMilliseconds(250));
+            return;
+        }
+        _trackCardHovered = true;
+        UpdateTrackControls();
+    }
+
+    private void UpdateTrackControls()
+    {
+        var expanded = _trackCardHovered && TrackContent.IsVisible && !_thoughtShowing
+            && (PreviousTrackButton.IsVisible || NextTrackButton.IsVisible);
+        TrackButtons.IsVisible = TrackContent.IsVisible;
+        TrackButtons.Height = expanded ? 28 : 0;
+        TrackButtons.Opacity = expanded ? 1 : 0;
+        TrackButtons.IsHitTestVisible = expanded;
+    }
+
+    private async void OnPreviousTrackClick(object? sender, RoutedEventArgs e)
+    {
+        e.Handled = true;
+        await RequestTrackSkipAsync(next: false);
+    }
+
+    private async void OnNextTrackClick(object? sender, RoutedEventArgs e)
+    {
+        e.Handled = true;
+        await RequestTrackSkipAsync(next: true);
+    }
+
+    private async Task RequestTrackSkipAsync(bool next)
+    {
+        if (_musicSession is not { } session || MusicTrackCommandRequested is not { } request)
+            return;
+        var accepted = false;
+        try { accepted = await request(session.Player, next); }
+        catch (Exception ex) when (ex is not OutOfMemoryException) { }
+        if (!accepted)
+        {
+            if (next) _nextSkipRejected = true;
+            else _previousSkipRejected = true;
+            RefreshMusicCard();
+        }
+    }
 
     public void NapFor(TimeSpan duration)
     {
@@ -356,6 +801,24 @@ public partial class BlobCompanionWindow : Window
             _cursorTimer.Start();
     }
 
+    private void CancelThoughtForMusicHandoff()
+    {
+        if (_thoughtShowing)
+        {
+            _thoughtCancellation.Cancel();
+            _thoughtCancellation.Dispose();
+            _thoughtCancellation = new CancellationTokenSource();
+        }
+        _thoughtShowing = false;
+        _appReactionActive = false;
+        ThoughtText.IsVisible = false;
+        ThoughtPopup.IsHitTestVisible = false;
+        ThoughtPopup.IsOpen = true;
+        Blob.SetCurious(false);
+        if (!_paused && !_napping && IsVisible && _activity != BlobCompanionActivity.Off && !_cinemaDimActive)
+            _cursorTimer.Start();
+    }
+
     private async Task PlayWakeRitualAsync(bool preserveGaze = false)
     {
         if (!Motion.Enabled) return;
@@ -424,6 +887,54 @@ public partial class BlobCompanionWindow : Window
         }
     }
 
+    internal void ShowEnvironmentReaction(BlobEnvironmentReaction reaction, PlatformScreenBounds? bounds = null)
+    {
+        if (!CanObserveAppContext || _thoughtShowing || _conversionActive || _passwordFocused) return;
+        var now = DateTime.UtcNow;
+        if (now < _environmentUntil) return;
+        var duration = reaction switch { BlobEnvironmentReaction.Welcome => 1.4, BlobEnvironmentReaction.Charging => .9, _ => .8 };
+        _environmentUntil = now.AddSeconds(duration);
+        _environmentGaze = reaction == BlobEnvironmentReaction.WindowMoved
+            ? BlobFocusGaze.ToViewBoxTarget(bounds, Blob.PointToScreen(new Point()), RenderScaling, new Rect(Blob.Bounds.Size))
+            : null;
+        if (Motion.Enabled)
+        {
+            if (reaction == BlobEnvironmentReaction.Welcome) Blob.TriggerStretch();
+            else if (reaction == BlobEnvironmentReaction.Charging) { Blob.Proud(); Blob.State.TriggerTiltWobble(2); }
+            else { Blob.SetCurious(true); Blob.State.TriggerBlink(); }
+        }
+        else Blob.State.TriggerBlink();
+        if (reaction is BlobEnvironmentReaction.Welcome or BlobEnvironmentReaction.Charging)
+            Blob.State.SetHappy(.5, duration);
+        var quip = reaction switch
+        {
+            BlobEnvironmentReaction.Welcome => "There you are. I was supervising the pixels.",
+            BlobEnvironmentReaction.Charging => "Snack time for the laptop!",
+            BlobEnvironmentReaction.LowBattery => "A little power snack would be lovely.",
+            _ => null,
+        };
+        if (quip is not null && now - _lastEnvironmentQuip >= TimeSpan.FromSeconds(45)
+            && ShowAppReaction(quip, "environment")) _lastEnvironmentQuip = now;
+    }
+
+    public void SetFocusedInputContext(FocusedInputContext? context)
+    {
+        var entering = context?.IsPassword == true && !_passwordFocused;
+        _passwordFocused = context?.IsPassword == true;
+        Blob.SetPrivacy(_passwordFocused, _passwordFocused && PrivacySunglassesEnabled);
+        SetFocusedInputBounds(_passwordFocused ? null : context?.Bounds);
+        if (entering && PrivacySunglassesEnabled && DateTime.UtcNow - _lastPrivacyQuip >= TimeSpan.FromMinutes(10)
+            && DateTime.UtcNow - _lastEnvironmentQuip >= TimeSpan.FromSeconds(45))
+        {
+            string[] quips = ["My shades are on. Your secrets stay yours.", "Password time? Looking respectfully elsewhere.", "Suddenly, this corner looks fascinating."];
+            if (ShowAppReaction(quips[_privacyQuipIndex % quips.Length], "privacy"))
+            {
+                _lastPrivacyQuip = _lastEnvironmentQuip = DateTime.UtcNow;
+                _privacyQuipIndex++;
+            }
+        }
+    }
+
     public void SetFocusedInputBounds(PlatformScreenBounds? bounds)
     {
         if (_focusedInputBounds is not null && bounds is null)
@@ -449,7 +960,9 @@ public partial class BlobCompanionWindow : Window
         if (_appReactionActive)
             CancelThoughtForPriority();
         _appReactionActive = true;
-        _ = ShowAppReactionAsync(text, BlobCompanionBehavior.MotionForApp(appKey));
+        _activeAppReactionKey = appKey;
+        _ = ShowAppReactionAsync(text, BlobCompanionBehavior.MotionForApp(appKey),
+            handoffMusicCard: HasActiveMusicSession);
         return true;
     }
 
@@ -466,6 +979,7 @@ public partial class BlobCompanionWindow : Window
             }
             if (value && _dragOver)
                 EndFileDrag();
+            RefreshMusicCard();
         }
     }
 
@@ -503,6 +1017,7 @@ public partial class BlobCompanionWindow : Window
                 _playHatchOnNextShow = false;
                 _ = PlayHatchAsync();
             }
+            RefreshMusicCard();
         }
         else
         {
@@ -533,6 +1048,7 @@ public partial class BlobCompanionWindow : Window
             Blob.SetCurious(false);
             Blob.SetMouthOpen(0);
             Blob.State.SetDragMotion(0, 0);
+            RefreshMusicCard();
         }
     }
 
@@ -549,7 +1065,24 @@ public partial class BlobCompanionWindow : Window
             _lastCursorPosition = cursor;
             _lastCursorMovement = DateTime.UtcNow;
         }
-        if (_focusedInputBounds is { } focused)
+        if (_passwordFocused)
+        {
+            Blob.State.LookAt(new Point(-18, -10));
+            return;
+        }
+        if (DateTime.UtcNow < _environmentUntil && !_thoughtShowing && !_dragOver && !_moving)
+        {
+            if (_environmentGaze is { } target) Blob.State.LookAtCursor(target);
+            return;
+        }
+        if (_environmentUntil != default)
+        {
+            _environmentUntil = default;
+            _environmentGaze = null;
+            Blob.SetCurious(false);
+        }
+        if (_focusedInputBounds is { } focused && BlobFocusGaze.ShouldFollow(
+            new FocusedInputContext(focused, false), _lastSystemIdle))
         {
             var focusedOrigin = Blob.PointToScreen(new Point(0, 0));
             Blob.State.LookAtCursor(BlobFocusGaze.ToViewBoxTarget(focused, focusedOrigin, RenderScaling, new Rect(Blob.Bounds.Size)));
@@ -562,6 +1095,18 @@ public partial class BlobCompanionWindow : Window
             return;
         }
 
+        var nearOrigin = Blob.PointToScreen(new Point(0, 0));
+        var distance = Math.Abs(x - (nearOrigin.X + Blob.Bounds.Width * RenderScaling / 2))
+            + Math.Abs(y - (nearOrigin.Y + Blob.Bounds.Height * RenderScaling / 2));
+        if (AwarenessEnabled && distance < 90 * RenderScaling && DateTime.UtcNow - _lastCursorMovement >= TimeSpan.FromSeconds(1.5)
+            && DateTime.UtcNow - _lastInspection >= TimeSpan.FromSeconds(45) && !_thoughtShowing && !_dragOver && !_moving)
+        {
+            _lastInspection = DateTime.UtcNow;
+            _environmentUntil = DateTime.UtcNow.AddSeconds(1.2);
+            Blob.SetCurious(true);
+            Blob.State.TriggerBlink();
+            if (Motion.Enabled) Blob.State.TriggerTiltWobble(2);
+        }
         var origin = Blob.PointToScreen(new Point(0, 0));
         var scale = Math.Max(.1, RenderScaling);
         var local = new Point((x - origin.X) / scale, (y - origin.Y) / scale);
@@ -582,6 +1127,7 @@ public partial class BlobCompanionWindow : Window
         _yankDetector.Reset();
         _pressLocal = e.GetPosition(this);
         _pressScreen = Blob.PointToScreen(e.GetPosition(Blob));
+        _dragStartMonitor = Screens.ScreenFromPoint(Position)?.Bounds;
         _pressStarted = DateTime.UtcNow;
         _lastDragScreen = _pressScreen;
         _lastDragAt = _pressStarted;
@@ -670,6 +1216,14 @@ public partial class BlobCompanionWindow : Window
             _moving = false;
             Blob.State.SetDragMotion(0, 0);
             UpdatePerchLean();
+            if (WindowReactionsEnabled && _dragStartMonitor is { } oldMonitor
+                && Screens.ScreenFromPoint(Position)?.Bounds is { } newMonitor && newMonitor != oldMonitor)
+            {
+                _environmentUntil = DateTime.UtcNow.AddSeconds(1.3);
+                _environmentGaze = new Point(35, 40);
+                Blob.State.TriggerBlink(2);
+                if (Motion.Enabled) Blob.State.TriggerTiltWobble(2);
+            }
             if (_yankDetector.IsYank(DateTime.UtcNow))
             {
                 Blob.State.TriggerCompanionEyeRoll(10, 1.4);
@@ -710,6 +1264,7 @@ public partial class BlobCompanionWindow : Window
     {
         if (_thoughtShowing || _dropPending || _conversionActive || _radial.IsVisible) return;
         _thoughtShowing = true;
+        RefreshMusicCard();
         var source = _thoughtCancellation;
         var token = source.Token;
         try
@@ -730,6 +1285,7 @@ public partial class BlobCompanionWindow : Window
             ThoughtText.Text = "No files to feed me ??";
             Blob.State.LookAt(null);
             ResetIdleTimer();
+            RefreshMusicCard();
         }
         catch (OperationCanceledException) { }
         finally
@@ -739,15 +1295,27 @@ public partial class BlobCompanionWindow : Window
         }
     }
 
-    private async Task ShowAppReactionAsync(string text, BlobAppBodyMotion motion)
+    private async Task ShowAppReactionAsync(string text, BlobAppBodyMotion motion, bool handoffMusicCard = false)
     {
         _thoughtShowing = true;
         var source = _thoughtCancellation;
         var token = source.Token;
         try
         {
+            if (handoffMusicCard)
+            {
+                _musicTransitionPending = true;
+                TrackContent.Opacity = 0;
+                await Task.Delay(250, token);
+                TrackContent.IsVisible = false;
+                TrackButtons.IsVisible = false;
+                ThoughtText.IsVisible = true;
+                ThoughtPopup.IsHitTestVisible = true;
+                _musicTransitionPending = false;
+            }
+            RefreshMusicCard();
             _cursorTimer.Stop();
-            Blob.State.LookAtCursor(new Point(52.55, 44.8));
+            if (!_passwordFocused) Blob.State.LookAtCursor(new Point(52.55, 44.8));
             Blob.SetCurious(true);
             ThoughtText.Text = text;
             ThoughtCloud.Opacity = 0;
@@ -756,7 +1324,8 @@ public partial class BlobCompanionWindow : Window
             await Task.Delay(20, token);
             ThoughtCloud.Opacity = 1;
             await PlayAppBodyLanguageAsync(motion, token);
-            var remaining = BlobAppAwareness.AppReactionDuration - Stopwatch.GetElapsedTime(shownAt);
+            var duration = _activeAppReactionKey == "privacy" ? TimeSpan.FromSeconds(4) : BlobAppAwareness.AppReactionDuration;
+            var remaining = duration - Stopwatch.GetElapsedTime(shownAt);
             if (remaining > TimeSpan.Zero)
                 await Task.Delay(remaining, token);
             ThoughtCloud.Opacity = 0;
@@ -780,6 +1349,9 @@ public partial class BlobCompanionWindow : Window
                     _cursorTimer.Start();
                 _thoughtShowing = false;
                 _appReactionActive = false;
+                _activeAppReactionKey = null;
+                _musicTransitionPending = false;
+                RefreshMusicCard();
             }
         }
     }
@@ -798,10 +1370,11 @@ public partial class BlobCompanionWindow : Window
                 break;
             case BlobAppBodyMotion.Think:
                 Blob.State.LookAt(new Point(-8, -14));
-                await Task.Delay(260, token);
+                if (Motion.Enabled) Blob.State.TriggerTiltWobble(2);
+                await Task.Delay(700, token);
                 Blob.State.LookAt(new Point(8, -10));
-                await Task.Delay(260, token);
-                Blob.State.TriggerBlink();
+                await Task.Delay(800, token);
+                Blob.State.TriggerBlink(2);
                 Blob.State.LookAt(null);
                 break;
             case BlobAppBodyMotion.Orbit:
@@ -849,6 +1422,7 @@ public partial class BlobCompanionWindow : Window
 
     private void OnDragEnter(object? sender, DragEventArgs e)
     {
+        _dragLeaveTimer.Stop();
         if (_dragOver)
         {
             e.DragEffects = _dragOffersFiles && CanAcceptFiles ? DragDropEffects.Copy : DragDropEffects.None;
@@ -894,6 +1468,7 @@ public partial class BlobCompanionWindow : Window
 
         Blob.State.SuppressAutonomousWinks = true;
         _dragOver = true;
+        RefreshMusicCard();
         CancelDesktopHop();
         _dragSequence++;
         _fileDragSince = DateTime.UtcNow;
@@ -911,6 +1486,7 @@ public partial class BlobCompanionWindow : Window
 
     private void OnDragOver(object? sender, DragEventArgs e)
     {
+        _dragLeaveTimer.Stop();
         if (_dragOffersFiles && CanAcceptFiles)
         {
             var p = e.GetPosition(Blob);
@@ -932,11 +1508,19 @@ public partial class BlobCompanionWindow : Window
 
     private void OnDragLeave(object? sender, DragEventArgs e)
     {
-        EndFileDrag();
+        _dragLeaveTimer.Start();
+    }
+
+    private void OnDragLeaveTimerTick(object? sender, EventArgs e)
+    {
+        _dragLeaveTimer.Stop();
+        if (_dragOver && !Root.IsPointerOver && !TrackContent.IsPointerOver)
+            EndFileDrag();
     }
 
     private void OnDrop(object? sender, DragEventArgs e)
     {
+        _dragLeaveTimer.Stop();
         if (!CanAcceptFiles)
         {
             e.DragEffects = DragDropEffects.None;
@@ -956,6 +1540,7 @@ public partial class BlobCompanionWindow : Window
         }
 
         _dropPending = true;
+        RefreshMusicCard();
         CancelWakeRitual();
         _dragOver = false;
         _dragSequence++;
@@ -995,6 +1580,7 @@ public partial class BlobCompanionWindow : Window
 
     private void EndFileDrag()
     {
+        _dragLeaveTimer.Stop();
         if (!_dragOver) return;
         _dragOver = false;
         Blob.State.SuppressAutonomousWinks = false;
@@ -1007,6 +1593,7 @@ public partial class BlobCompanionWindow : Window
             _cursorTimer.Start();
         _ = RelaxAfterFileDragAsync(++_dragSequence, Blob.MouthOpen);
         ResetIdleTimer();
+        RefreshMusicCard();
     }
 
     private async Task SwallowThenOpenWheelAsync(DraggedItems dropped, PixelPoint at, Point local)
@@ -1090,6 +1677,7 @@ public partial class BlobCompanionWindow : Window
                 _dropAnimationCancellation = null;
             if (!_radial.IsVisible && !_paused && !_napping && IsVisible)
                 _cursorTimer.Start();
+            RefreshMusicCard();
             cancellation.Dispose();
         }
     }
@@ -1114,6 +1702,7 @@ public partial class BlobCompanionWindow : Window
         }
         finally { _reemerging = false; }
         if (!IsVisible) return;
+        RefreshMusicCard();
         WakeAndResetIdle();
         Blob.SetToneQuiet(BlobatarTone.Idle);
         ApplyPendingConversionResult();
@@ -1295,6 +1884,7 @@ public partial class BlobCompanionWindow : Window
         _conversionActive = true;
         _conversionProgress = Math.Clamp(progress, 0, 1);
         if (_thoughtShowing) CancelThoughtForPriority();
+        RefreshMusicCard();
         _conversionClock.Start();
         if (!IsVisible) return;
         Blob.SetToneQuiet(BlobatarTone.Busy);
@@ -1316,6 +1906,7 @@ public partial class BlobCompanionWindow : Window
             _pendingSuccess = false;
         }
         if (IsVisible) ApplyPendingConversionResult();
+        RefreshMusicCard();
     }
 
     private void ApplyPendingConversionResult()

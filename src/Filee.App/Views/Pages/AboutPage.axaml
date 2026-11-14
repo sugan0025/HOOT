@@ -5,8 +5,10 @@
              xmlns:v="using:Filee.App.Views"
              x:Class="Filee.App.Views.Pages.AboutPage"
              x:DataType="vm:AboutPageViewModel">
-  <StackPanel Spacing="18">
+  <Grid RowDefinitions="Auto,*">
     <TextBlock Classes="h1" Text="{DynamicResource about.title}" />
+    <ScrollViewer Grid.Row="1" Margin="0,20,0,0" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Spacing="18">
     <Border Classes="card">
       <StackPanel Orientation="Horizontal" Spacing="18">
         <Image Source="avares://Hoot/Assets/Icons/filee.png" Width="72" Height="72" />
@@ -72,5 +74,7 @@
         </WrapPanel>
       </StackPanel>
     </Border>
-  </StackPanel>
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
 </UserControl>

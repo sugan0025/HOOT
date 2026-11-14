@@ -65,7 +65,7 @@ public sealed record PaletteChip(string PresetId, string Label, string? Caption,
     public bool IsGroup { get; init; }
 }
 
-public sealed partial class ToolbarPageViewModel : ObservableObject, IDisposable
+public sealed partial class ToolbarPageViewModel : ObservableObject, IDisposable, IFitsWindowHeight
 {
     internal static readonly (PaletteTab Id, string LabelKey, FormatCategory[] Categories)[] TabDefinitions =
     [

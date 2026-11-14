@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Filee.App.ViewModels.Pages;
 
-public sealed partial class GeneralPageViewModel : ObservableObject, IDisposable
+public sealed partial class GeneralPageViewModel : ObservableObject, IDisposable, IFitsWindowHeight
 {
     private readonly UserDataStore _store;
     private readonly ILocalizer _loc;
@@ -48,6 +48,11 @@ public sealed partial class GeneralPageViewModel : ObservableObject, IDisposable
         _blobAudioEnabled = store.Settings.BlobCompanion.AudioEnabled;
         _cinemaDimEnabled = store.Settings.BlobCompanion.CinemaDimEnabled;
         _stretchReminderEnabled = store.Settings.BlobCompanion.StretchReminderEnabled;
+        _privacySunglassesEnabled = store.Settings.BlobCompanion.PrivacySunglassesEnabled;
+        _powerReactionsEnabled = store.Settings.BlobCompanion.PowerReactionsEnabled;
+        _windowReactionsEnabled = store.Settings.BlobCompanion.WindowReactionsEnabled;
+        _musicDisplayEnabled = store.Settings.BlobCompanion.MusicDisplayEnabled;
+        _musicLyricsEnabled = store.Settings.BlobCompanion.MusicLyricsEnabled;
         var awareness = store.Settings.BlobCompanion.AppAwareness;
         _appAwarenessEnabled = awareness.Enabled;
         _awarenessClaude = awareness.EnabledApps.Contains("claude");
@@ -171,6 +176,11 @@ public sealed partial class GeneralPageViewModel : ObservableObject, IDisposable
         _restoringBlobCompanion = true;
         CinemaDimEnabled = _store.Settings.BlobCompanion.CinemaDimEnabled;
         StretchReminderEnabled = _store.Settings.BlobCompanion.StretchReminderEnabled;
+        PrivacySunglassesEnabled = _store.Settings.BlobCompanion.PrivacySunglassesEnabled;
+        PowerReactionsEnabled = _store.Settings.BlobCompanion.PowerReactionsEnabled;
+        WindowReactionsEnabled = _store.Settings.BlobCompanion.WindowReactionsEnabled;
+        MusicDisplayEnabled = _store.Settings.BlobCompanion.MusicDisplayEnabled;
+        MusicLyricsEnabled = _store.Settings.BlobCompanion.MusicLyricsEnabled;
         _restoringBlobCompanion = false;
         RestoreAwarenessSettings();
     }
@@ -189,6 +199,8 @@ public sealed partial class GeneralPageViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _blobAudioEnabled;
     [ObservableProperty] private bool _cinemaDimEnabled;
     [ObservableProperty] private bool _stretchReminderEnabled;
+    [ObservableProperty] private bool _musicDisplayEnabled;
+    [ObservableProperty] private bool _musicLyricsEnabled;
     [ObservableProperty, NotifyPropertyChangedFor(nameof(AppAwarenessAppsEnabled))] private bool _appAwarenessEnabled;
     [ObservableProperty] private bool _awarenessHoot, _awarenessClaude, _awarenessChatGpt, _awarenessAntigravity, _awarenessChrome;
     [ObservableProperty] private bool _awarenessExplorer, _awarenessNetflix, _awarenessSpotify, _awarenessWhatsApp;
@@ -289,6 +301,29 @@ public sealed partial class GeneralPageViewModel : ObservableObject, IDisposable
     partial void OnStretchReminderEnabledChanged(bool value)
     {
         if (!_restoringBlobCompanion) Save(s => s.BlobCompanion.StretchReminderEnabled = value);
+    }
+    partial void OnMusicDisplayEnabledChanged(bool value)
+    {
+        if (!_restoringBlobCompanion) Save(s => s.BlobCompanion.MusicDisplayEnabled = value);
+    }
+    partial void OnMusicLyricsEnabledChanged(bool value)
+    {
+        if (!_restoringBlobCompanion) Save(s => s.BlobCompanion.MusicLyricsEnabled = value);
+    }
+    [ObservableProperty] private bool _privacySunglassesEnabled;
+    partial void OnPrivacySunglassesEnabledChanged(bool value)
+    {
+        if (!_restoringBlobCompanion) Save(s => s.BlobCompanion.PrivacySunglassesEnabled = value);
+    }
+    [ObservableProperty] private bool _powerReactionsEnabled;
+    partial void OnPowerReactionsEnabledChanged(bool value)
+    {
+        if (!_restoringBlobCompanion) Save(s => s.BlobCompanion.PowerReactionsEnabled = value);
+    }
+    [ObservableProperty] private bool _windowReactionsEnabled;
+    partial void OnWindowReactionsEnabledChanged(bool value)
+    {
+        if (!_restoringBlobCompanion) Save(s => s.BlobCompanion.WindowReactionsEnabled = value);
     }
     private bool _restoringBlobCompanion;
     partial void OnBlobCompanionEnabledChanged(bool value)

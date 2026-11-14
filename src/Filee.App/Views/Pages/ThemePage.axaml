@@ -218,13 +218,14 @@
 
   <ScrollViewer x:Name="EditorScroller" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
 
-    <Grid ColumnDefinitions="*,20,340" RowDefinitions="Auto,*" MinWidth="700" Width="{Binding #EditorScroller.Viewport.Width}" HorizontalAlignment="Left">
+    <Grid ColumnDefinitions="*,20,340" RowDefinitions="Auto,*" Height="{Binding #EditorScroller.Viewport.Height}" MinWidth="700" Width="{Binding #EditorScroller.Viewport.Width}" HorizontalAlignment="Left">
 
       <TextBlock Grid.ColumnSpan="3" Classes="h1" Text="{DynamicResource theme.title}" Margin="0,0,0,18" />
 
 
 
-      <StackPanel Grid.Row="1" Spacing="16">
+      <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Spacing="16">
 
         <!-- Theme Style: Filee Soft vs Material You -->
 
@@ -669,6 +670,7 @@
         </Border>
 
       </StackPanel>
+      </ScrollViewer>
 
 
 

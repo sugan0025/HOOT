@@ -8,6 +8,9 @@ internal static class BlobFocusGaze
 {
     private static readonly TimeSpan RecentInputWindow = TimeSpan.FromSeconds(3);
 
+    public static bool ShouldFollow(FocusedInputContext? context, TimeSpan? idle) =>
+        context is { IsPassword: false, Bounds: { Width: > 0, Height: > 0 } } && HasRecentInput(idle);
+
     public static bool HasRecentInput(TimeSpan? idle) => idle is { } elapsed
         && elapsed >= TimeSpan.Zero && elapsed <= RecentInputWindow;
 

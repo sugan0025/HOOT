@@ -42,6 +42,8 @@ public interface IPlatformServices
     /// <summary>Elapsed time since any system input, without exposing key or pointer contents.</summary>
     TimeSpan? GetSystemIdleTime() => null;
 
+    CompanionEnvironmentSnapshot? GetCompanionEnvironment() => null;
+
     /// <summary>True while Windows reports a full-screen or presentation state; does not inspect window titles.</summary>
     bool IsPresentationModeActive() => false;
 
@@ -50,6 +52,15 @@ public interface IPlatformServices
 
     /// <summary>Watches only the bounds of a focused editable control; no text or values are returned.</summary>
     IDisposable? WatchFocusedInputBounds(Action<PlatformScreenBounds?> callback) => null;
+
+    IDisposable? WatchFocusedInputContext(Action<FocusedInputContext?> callback) =>
+        WatchFocusedInputBounds(bounds => callback(bounds is { } b ? new(b, false) : null));
+
+    /// <summary>Watches supported local music-player sessions. Track metadata is transient and is not persisted.</summary>
+    IDisposable? WatchMusicSessions(Action<MusicSessionSnapshot?> callback) => null;
+
+    /// <summary>Requests the selected music session to skip to the previous or next track.</summary>
+    Task<bool> SkipMusicTrackAsync(string player, bool next) => Task.FromResult(false);
 
     /// <summary>
     /// Names of the apps that have a window open now, as <see cref="ProcessNameAt"/> reports them, sorted, without
@@ -199,7 +210,18 @@ public sealed record ForegroundAppContext(string? ProcessName, string? WindowTit
 }
 
 /// <summary>Physical screen-pixel bounds reported by a platform accessibility API.</summary>
+public sealed record CompanionEnvironmentSnapshot(long WindowHandle, PlatformScreenBounds? WindowBounds, bool? Charging, int? BatteryPercent);
+
+public sealed record FocusedInputContext(PlatformScreenBounds? Bounds, bool IsPassword);
+
 public readonly record struct PlatformScreenBounds(int X, int Y, int Width, int Height);
+
+/// <summary>Transient track data from a supported Windows media session.</summary>
+public sealed record MusicSessionSnapshot(string Player, string? Title, string? Artist, MusicPlaybackState State,
+    bool CanSkipPrevious, bool CanSkipNext, TimeSpan Position = default, TimeSpan Duration = default,
+    DateTimeOffset TimelineUpdatedAt = default, string? Album = null);
+
+public enum MusicPlaybackState { Playing, Paused, Stopped, Unknown }
 
 /// <summary>Whether "Convert with Filee" is in the top-level Windows 11 File Explorer menu (not just "Show more options").</summary>
 public enum ModernContextMenuState

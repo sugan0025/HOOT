@@ -175,12 +175,12 @@
         
           <!-- Glass Tokens (Dark / Night) -->
           <LinearGradientBrush x:Key="GlassCardBrush" StartPoint="0%,0%" EndPoint="0%,100%">
-            <GradientStop Color="#59202535" Offset="0.0" />
-            <GradientStop Color="#3D131622" Offset="1.0" />
+            <GradientStop Color="#B3202535" Offset="0.0" />
+            <GradientStop Color="#A6131622" Offset="1.0" />
           </LinearGradientBrush>
           <LinearGradientBrush x:Key="GlassCardHoverBrush" StartPoint="0%,0%" EndPoint="0%,100%">
-            <GradientStop Color="#6E283042" Offset="0.0" />
-            <GradientStop Color="#4D191D2E" Offset="1.0" />
+            <GradientStop Color="#C2283042" Offset="0.0" />
+            <GradientStop Color="#B3191D2E" Offset="1.0" />
           </LinearGradientBrush>
           <LinearGradientBrush x:Key="GlassEdgeBrush" StartPoint="0%,0%" EndPoint="100%,100%">
             <GradientStop Color="#66B8C6FF" Offset="0.0" />
@@ -196,13 +196,13 @@
           <SolidColorBrush x:Key="AmbientReflectionBrush" Color="#1F8E85F3" />
 
           <!-- Master Card & Subcard Brushes -->
-          <SolidColorBrush x:Key="GlassMasterCardBrush" Color="#35141926" />
+          <SolidColorBrush x:Key="GlassMasterCardBrush" Color="#AD141926" />
           <SolidColorBrush x:Key="GlassMasterCardBorderBrush" Color="#45FFFFFF" />
-          <SolidColorBrush x:Key="GlassSubcardBrush" Color="#22161A26" />
-          <SolidColorBrush x:Key="GlassSubcardHoverBrush" Color="#321D2336" />
+          <SolidColorBrush x:Key="GlassSubcardBrush" Color="#88161A26" />
+          <SolidColorBrush x:Key="GlassSubcardHoverBrush" Color="#A61D2336" />
           <SolidColorBrush x:Key="GlassSubcardBorderBrush" Color="#30FFFFFF" />
-          <SolidColorBrush x:Key="GlassConsoleBarBrush" Color="#2B1A2030" />
-          <SolidColorBrush x:Key="GlassConsoleBarHoverBrush" Color="#3D222B40" />
+          <SolidColorBrush x:Key="GlassConsoleBarBrush" Color="#A61A2030" />
+          <SolidColorBrush x:Key="GlassConsoleBarHoverBrush" Color="#B8222B40" />
           <SolidColorBrush x:Key="GlassConsoleBarBorderBrush" Color="#40FFFFFF" />
 
           <!-- Nav Pane -->
@@ -214,8 +214,8 @@
 
           <!-- Ambient Scrim Backdrop -->
           <LinearGradientBrush x:Key="PhaseScrimBrush" StartPoint="0%,0%" EndPoint="0%,100%">
-            <GradientStop Color="#4005070D" Offset="0.0" />
-            <GradientStop Color="#550A0C12" Offset="0.55" />
+            <GradientStop Color="#8005070D" Offset="0.0" />
+            <GradientStop Color="#990A0C12" Offset="0.55" />
             <GradientStop Color="#80040508" Offset="1.0" />
           </LinearGradientBrush>
 

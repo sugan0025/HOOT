@@ -4,7 +4,7 @@
              xmlns:c="using:Filee.App.Controls"
              x:Class="Filee.App.Views.Pages.TriggersPage"
              x:DataType="vm:TriggersPageViewModel">
-  <StackPanel Spacing="18">
+  <Grid RowDefinitions="Auto,*">
     <DockPanel>
       <Button DockPanel.Dock="Right" Classes="accent" Command="{Binding AddCommand}">
         <StackPanel Orientation="Horizontal" Spacing="6">
@@ -17,6 +17,8 @@
         <TextBlock Classes="muted" TextWrapping="Wrap" Text="{DynamicResource triggers.description}" />
       </StackPanel>
     </DockPanel>
+    <ScrollViewer Grid.Row="1" Margin="0,20,0,0" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Spacing="18">
 
     <StackPanel Spacing="8">
       <TextBlock Classes="muted" TextWrapping="Wrap" Text="{Binding PlatformNotice}"
@@ -209,4 +211,6 @@
       </StackPanel>
     </Border>
   </StackPanel>
+    </ScrollViewer>
+  </Grid>
 </UserControl>

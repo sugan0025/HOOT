@@ -239,13 +239,14 @@
   </UserControl.DataTemplates>
 
   <ScrollViewer x:Name="EditorScroller" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
-    <Grid x:Name="Root" RowDefinitions="Auto,*" MinWidth="786" Width="{Binding #EditorScroller.Viewport.Width}" HorizontalAlignment="Left">
+    <Grid x:Name="Root" RowDefinitions="Auto,*" Height="{Binding #EditorScroller.Viewport.Height}" MinWidth="786" Width="{Binding #EditorScroller.Viewport.Width}" HorizontalAlignment="Left">
       <StackPanel Spacing="4" Margin="0,0,0,18">
         <TextBlock Classes="h1" Text="{DynamicResource toolbar.title}" />
       </StackPanel>
 
       <Grid Grid.Row="1" ColumnDefinitions="200,20,*,20,230">
         <!-- 1. Profiles -->
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <StackPanel Spacing="8">
           <TextBlock Classes="label" Text="{DynamicResource toolbar.step_profile}" />
           <TextBox Classes="search clearButton" Text="{Binding ProfileSearch}" Watermark="{DynamicResource common.search}">
@@ -293,9 +294,11 @@
           </Button>
           <TextBlock x:Name="ProfileOrderHint" Classes="caption" TextWrapping="Wrap" Text="{DynamicResource toolbar.profile_order_hint}" />
         </StackPanel>
+        </ScrollViewer>
 
         <!-- 2. Donut -->
-        <StackPanel Grid.Column="2" Spacing="12">
+        <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Spacing="12">
           <TextBlock Classes="label" Text="{DynamicResource toolbar.step_arrange}" />
           <Border Classes="card" Padding="8">
             <StackPanel>
@@ -452,9 +455,11 @@
             </StackPanel>
           </Border>
         </StackPanel>
+        </ScrollViewer>
 
         <!-- Palette -->
-        <StackPanel x:Name="PaletteColumn" Grid.Column="4" Spacing="8">
+        <ScrollViewer Grid.Column="4" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel x:Name="PaletteColumn" Spacing="8">
           <TextBlock Classes="label" Text="{DynamicResource toolbar.available}" />
           <!-- Keep complete action labels; longer translations can move the second action to the next row. -->
           <WrapPanel>
@@ -530,6 +535,7 @@
             <TextBlock Classes="caption" TextWrapping="Wrap" Text="{DynamicResource toolbar.hint_edit}" />
           </StackPanel>
         </StackPanel>
+        </ScrollViewer>
       </Grid>
 
       <!-- Drag ghost layer -->
