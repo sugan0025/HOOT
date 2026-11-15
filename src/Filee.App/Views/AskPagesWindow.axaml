@@ -9,7 +9,7 @@
         x:DataType="vm:AskPagesViewModel"
         Title="{DynamicResource pages.title}"
         Icon="avares://Hoot/Assets/Icons/filee.ico"
-        Width="540" SizeToContent="Height" CanResize="False"
+        Width="580" SizeToContent="Height" CanResize="False"
         WindowStartupLocation="CenterScreen">
   <Window.Styles>
     <!-- One PDF / one file per page / several pages per file: segments in a pill, the chosen one filled with the accent (as the merge
@@ -83,14 +83,14 @@
       <!-- A PDF target: the pages together in one PDF, each as a file of its own, or several to a file (#1259). -->
       <StackPanel Spacing="10" IsVisible="{Binding OffersSplit}">
         <Border x:Name="SplitChoice" Classes="choices" HorizontalAlignment="Left">
-          <WrapPanel Orientation="Horizontal">
+          <StackPanel Orientation="Horizontal">
             <RadioButton x:Name="OnePdf" Classes="choice" GroupName="PageOutput" IsChecked="{Binding OnePdf}"
                          Content="{DynamicResource pages.one_pdf}" AutomationProperties.Name="{DynamicResource pages.one_pdf}" />
             <RadioButton x:Name="PerPage" Classes="choice" GroupName="PageOutput" IsChecked="{Binding EachPage}"
                          Content="{DynamicResource presets.split}" AutomationProperties.Name="{DynamicResource presets.split}" />
             <RadioButton x:Name="Groups" Classes="choice" GroupName="PageOutput" IsChecked="{Binding Groups}"
                          Content="{DynamicResource pages.groups}" AutomationProperties.Name="{DynamicResource pages.groups}" />
-          </WrapPanel>
+          </StackPanel>
         </Border>
         <!-- Several pages per file: how many pages each, or how many equal parts. -->
         <StackPanel x:Name="GroupRow" Orientation="Horizontal" Spacing="8" IsVisible="{Binding Groups}">
