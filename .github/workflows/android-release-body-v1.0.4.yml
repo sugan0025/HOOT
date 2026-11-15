@@ -1,0 +1,60 @@
+name: Update HOOT Android 1.0.4 Release Notes
+
+on:
+  push:
+    branches:
+      - codex/android-signing-diagnostic
+    paths:
+      - .github/workflows/android-release-body-v1.0.4.yml
+
+permissions:
+  contents: read
+
+jobs:
+  update-release-notes:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Publish direct Android install instructions
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="android-v1.0.4"
+          apk_url="https://github.com/$GITHUB_REPOSITORY/releases/download/$tag/Hoot-Android.apk"
+          release_json="$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$tag")"
+          release_id="$(python3 -c 'import json,sys; d=json.load(sys.stdin); print(d["id"])' <<< "$release_json")"
+          python3 -c 'import json,sys; r=json.load(sys.stdin); names={a["name"] for a in r.get("assets",[])}; required={"Hoot-Android.apk","Hoot-Android-update.json"}; assert required <= names, "expected Android release assets are missing"; assert not r["draft"] and not r["prerelease"], "Android release is not published"' <<< "$release_json"
+
+          body="$(cat <<EOF
+          HOOT for Android 1.0.4. This Android-only release does not change the Windows release channel.
+
+          **Direct APK download:** [$apk_url]($apk_url)
+
+          Install the downloaded APK with Android's package installer. Android may ask you to allow installs from the app used to download the file and to confirm the installation.
+          EOF
+          )"
+          gh api --method PATCH "repos/$GITHUB_REPOSITORY/releases/$release_id" \
+            -f "body=$body" \
+            -f make_latest=false > "$RUNNER_TEMP/release-updated.json"
+
+          python3 - "$RUNNER_TEMP/release-updated.json" "$apk_url" <<'PY'
+          import json
+          import pathlib
+          import sys
+
+          release = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+          apk_url = sys.argv[2]
+          if apk_url not in release.get("body", ""):
+              raise SystemExit("Release notes do not contain the direct APK URL")
+          if release.get("tag_name") != "android-v1.0.4" or release.get("draft") or release.get("prerelease"):
+              raise SystemExit("Android release state changed unexpectedly")
+          print("release_body_direct_apk_url_verified=true")
+          print(f"release_url={release['html_url']}")
+          PY
+
+          latest_tag="$(gh api "repos/$GITHUB_REPOSITORY/releases/latest" --jq .tag_name)"
+          [[ "$latest_tag" == v* ]]
+          echo "windows_latest_release=$latest_tag"
