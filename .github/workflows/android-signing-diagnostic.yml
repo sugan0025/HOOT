@@ -122,3 +122,57 @@ jobs:
           export KEYSTORE_PATH="$key"
           javac -d "$RUNNER_TEMP" "$RUNNER_TEMP/SigningPreflight.java"
           java -cp "$RUNNER_TEMP" SigningPreflight
+
+  apksigner-output:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: android-v1.0.3
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+          cache-dependency-path: android/**/*.gradle*
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platforms;android-36 build-tools;36.0.0'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Build release APK using current repository signing secrets
+        env:
+          HOOT_ANDROID_KEYSTORE_BASE64: ${{ secrets.HOOT_ANDROID_KEYSTORE_BASE64 }}
+          HOOT_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.HOOT_ANDROID_KEYSTORE_PASSWORD }}
+          HOOT_ANDROID_KEY_ALIAS: ${{ secrets.HOOT_ANDROID_KEY_ALIAS }}
+          HOOT_ANDROID_KEY_PASSWORD: ${{ secrets.HOOT_ANDROID_KEY_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          set +x
+          key="$RUNNER_TEMP/hoot-apksigner-diagnostic.keystore"
+          trap 'rm -f "$key"' EXIT
+          printf '%s' "$HOOT_ANDROID_KEYSTORE_BASE64" | base64 --decode > "$key"
+          chmod 600 "$key"
+          export HOOT_ANDROID_KEYSTORE_PATH="$key"
+          ./gradlew --no-daemon :app:assembleRelease
+      - name: Capture exact apksigner output (public certificate details only)
+        shell: bash
+        run: |
+          set -euo pipefail
+          apk="app/build/outputs/apk/release/app-release.apk"
+          apksigner="$(find "$ANDROID_HOME/build-tools" -maxdepth 2 -type f -name apksigner | sort -V | tail -n 1)"
+          test -n "$apksigner" && test -x "$apksigner"
+          echo "APKSIGNER_PATH=$apksigner"
+          if "$apksigner" verify --print-certs "$apk" > "$RUNNER_TEMP/apksigner.stdout" 2> "$RUNNER_TEMP/apksigner.stderr"; then
+            echo "APKSIGNER_EXIT_CODE=0"
+          else
+            status=$?
+            echo "APKSIGNER_EXIT_CODE=$status"
+          fi
+          echo "=== apksigner stdout ==="
+          cat "$RUNNER_TEMP/apksigner.stdout"
+          echo "=== apksigner stderr ==="
+          cat "$RUNNER_TEMP/apksigner.stderr"
