@@ -101,6 +101,8 @@ jobs:
           apk="app/build/outputs/apk/release/app-release.apk"
           metadata="build/release/Hoot-Android-update.json"
           apksigner="$(find "$ANDROID_HOME/build-tools" -maxdepth 2 -type f -name apksigner | sort -V | tail -n 1)"
+          test -n "$apksigner" && test -x "$apksigner"
+          echo "Verifying APK signer with $apksigner"
           python3 scripts/create_release_metadata.py \
             --apk "$apk" \
             --output "$metadata" \
