@@ -15,7 +15,8 @@ APPLICATION_ID = "app.hoot"
 REPOSITORY = "sugan0025/HOOT"
 EXPECTED_SIGNER = "30e9d23fb1a37a9d9dc1f117e2366d23a17186cf745b0570b7b909f75602fcd6"
 SIGNER_DIGEST_PATTERN = re.compile(
-    r"Signer\s+#(?P<number>\d+)\s+certificate\s+SHA-256\s+digest\s*:\s*"
+    r"(?:(?:Signer\s+#(?P<number>\d+))|(?P<scheme>V\d+(?:\.\d+)?\s+Signer))"
+    r"\s*:?\s+certificate\s+SHA-256\s+digest\s*:\s*"
     r"(?P<digest>[0-9a-fA-F][0-9a-fA-F: \t-]*)",
     re.IGNORECASE,
 )
@@ -24,18 +25,22 @@ SIGNER_DIGEST_PATTERN = re.compile(
 def signer_sha256(stdout: str, stderr: str) -> str:
     """Read the single signer digest from apksigner's combined output."""
     output = f"{stdout}\n{stderr}"
-    signers: set[tuple[int, str]] = set()
+    signer_digests: set[str] = set()
+    numbered_signers: set[int] = set()
     for match in SIGNER_DIGEST_PATTERN.finditer(output):
         digest = re.sub(r"[\s:-]", "", match.group("digest")).lower()
         if len(digest) != 64 or re.fullmatch(r"[0-9a-f]{64}", digest) is None:
             raise ValueError("apksigner returned a malformed SHA-256 certificate digest")
-        signers.add((int(match.group("number")), digest))
+        signer_number = match.group("number")
+        if signer_number is not None:
+            numbered_signers.add(int(signer_number))
+        signer_digests.add(digest)
 
-    if not signers:
+    if not signer_digests:
         raise ValueError("apksigner did not report a signer SHA-256 certificate digest")
-    if len(signers) != 1 or next(iter(signers))[0] != 1:
+    if len(signer_digests) != 1 or any(number != 1 for number in numbered_signers) or len(numbered_signers) > 1:
         raise ValueError("Expected exactly one APK signer certificate")
-    return next(iter(signers))[1]
+    return next(iter(signer_digests))
 
 
 def main() -> None:

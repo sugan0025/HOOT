@@ -50,10 +50,10 @@ The updater validates the release metadata, APK size and SHA-256, package ID, ve
 Android still requires the user to approve package installation in system settings; the app cannot silently install
 its own APK.
 
-The Android 1.0.3 APK will be available at:
+The Android 1.0.4 APK will be available at:
 
 ```text
-https://github.com/sugan0025/HOOT/releases/download/android-v1.0.3/Hoot-Android.apk
+https://github.com/sugan0025/HOOT/releases/download/android-v1.0.4/Hoot-Android.apk
 ```
 
-That URL becomes usable after the `android-v1.0.3` release workflow succeeds.
+That URL becomes usable after the `android-v1.0.4` release workflow succeeds.
