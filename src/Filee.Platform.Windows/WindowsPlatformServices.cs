@@ -157,7 +157,7 @@ public sealed class WindowsPlatformServices : IPlatformServices
         _musicSessionWatcher = watcher;
         return new MusicSessionSubscription(this, watcher);
 #else
-         return null;
+        return null;
 #endif
     }
 
