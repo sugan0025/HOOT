@@ -50,8 +50,12 @@
 
         <StackPanel DockPanel.Dock="Top" Classes="navheader" Orientation="Horizontal" Spacing="10">
 
-          <c:BlobatarControl Width="44" Height="44" VerticalAlignment="Center" Margin="0,0,2,0"
-                             ToolTip.Tip="OWL Mascot" />
+          <Button x:Name="AndroidMascotButton" Classes="navtoggle" Click="OnAndroidMascotClick"
+                  Padding="0" Background="Transparent" BorderThickness="0" VerticalAlignment="Center"
+                  AutomationProperties.Name="HOOT mascot" ToolTip.Tip="HOOT mascot">
+            <c:BlobatarControl x:Name="SidebarBlob" Width="44" Height="44" Margin="0,0,2,0"
+                               PointerReactionsEnabled="False" IsHitTestVisible="False" />
+          </Button>
 
           <StackPanel VerticalAlignment="Center" IsVisible="{Binding !IsNavCollapsed}">
 
@@ -214,6 +218,8 @@
     </c:SmoothScrollViewer>
 
   </Grid>
+
+    <c:AndroidQrReveal x:Name="AndroidReveal" />
 
   </Panel>
 

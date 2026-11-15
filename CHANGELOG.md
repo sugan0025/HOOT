@@ -14,6 +14,15 @@ change, a language may repeat; a language without lines shows the English ones):
 - `recommended`: bug fixes. The card shows once per version.
 - `optional`: new features only. No card, the sidebar button only.
 
+## 2.6.6
+
+<!-- update
+level: optional
+en: Click the sidebar Blob to discover HOOT for Android with an animated QR reveal.
+-->
+
+- **Android Easter egg**: Click the mascot in the Windows app sidebar to reveal the Android QR code and download link. The card stays open until dismissed and supports keyboard access and reduced motion.
+
 ## 2.6.5
 
 <!-- update

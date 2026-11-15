@@ -22,6 +22,7 @@ public partial class MainWindow : Window
         InitializeComponent();
         Motion.Track(this);
         UiZoom.Track(this);
+        InitializeAndroidReveal();
 
         AddHandler(Button.ClickEvent, OnAnyButtonClicked, RoutingStrategies.Bubble);
         AddHandler(ToggleSwitch.IsCheckedChangedEvent, OnAnyToggleChanged, RoutingStrategies.Bubble);
