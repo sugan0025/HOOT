@@ -100,6 +100,8 @@ jobs:
           set -euo pipefail
           apk="app/build/outputs/apk/release/app-release.apk"
           metadata="build/release/Hoot-Android-update.json"
+          mkdir -p "$(dirname "$metadata")"
+          cp "$apk" "build/release/Hoot-Android.apk"
           apksigner="$(find "$ANDROID_HOME/build-tools" -maxdepth 2 -type f -name apksigner | sort -V | tail -n 1)"
           test -n "$apksigner" && test -x "$apksigner"
           echo "Verifying APK signer with $apksigner"
@@ -126,8 +128,8 @@ jobs:
             -f make_latest=false)"
           release_id="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["id"])' <<< "$response")"
           gh release upload "$TAG" \
-            app/build/outputs/apk/release/app-release.apk#Hoot-Android.apk \
-            build/release/Hoot-Android-update.json#Hoot-Android-update.json
+            build/release/Hoot-Android.apk \
+            build/release/Hoot-Android-update.json
           gh api --method PATCH "repos/$GITHUB_REPOSITORY/releases/$release_id" \
             -F draft=false \
             -f make_latest=false
