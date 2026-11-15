@@ -1,5 +1,5 @@
 name: HOOT Android Signing Diagnostic
-# Intentionally safe to rerun after repository signing secrets are corrected.
+# Intentionally safe to rerun after repository signing secrets are corrected (current-secret check).
 
 on:
   push:
