@@ -62,7 +62,7 @@ jobs:
           )
           PY
       - name: Test and build the signed Android APK
-        run: bash ./gradlew --no-daemon :app:testReleaseUnitTest :app:assembleRelease
+        run: bash ./gradlew --no-daemon :app:testDebugUnitTest :app:assembleRelease
       - name: Create update metadata
         env:
           TAG: ${{ github.ref_name }}

@@ -49,7 +49,7 @@ its own APK.
 The first downloadable asset will be at:
 
 ```text
-https://github.com/sugan0025/HOOT/releases/download/android-v1.0.0/Hoot-Android.apk
+https://github.com/sugan0025/HOOT/releases/download/android-v1.0.1/Hoot-Android.apk
 ```
 
-That URL becomes usable after the signing secrets are configured and the `android-v1.0.0` release workflow succeeds.
+That URL becomes usable after the signing secrets are configured and the `android-v1.0.1` release workflow succeeds.
