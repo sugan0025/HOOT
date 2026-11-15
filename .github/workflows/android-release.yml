@@ -48,8 +48,38 @@ jobs:
           from pathlib import Path
 
           def escape(value: str) -> str:
-              return (value.replace("\\", "\\\\").replace("\n", "\\n").replace("\r", "\\r")
-                      .replace("\t", "\\t").replace("=", "\\=").replace(":", "\\:"))
+              escaped = []
+              for index, character in enumerate(value):
+                  codepoint = ord(character)
+                  if character == "\\":
+                      escaped.append("\\\\")
+                  elif character == "\t":
+                      escaped.append("\\t")
+                  elif character == "\n":
+                      escaped.append("\\n")
+                  elif character == "\r":
+                      escaped.append("\\r")
+                  elif character == "\f":
+                      escaped.append("\\f")
+                  elif character == " " and index == 0:
+                      escaped.append("\\ ")
+                  elif character in "=:#!":
+                      escaped.append("\\" + character)
+                  elif codepoint < 0x20 or codepoint > 0x7E:
+                      if codepoint <= 0xFFFF:
+                          escaped.append(f"\\u{codepoint:04X}")
+                      else:
+                          offset = codepoint - 0x10000
+                          high = 0xD800 + (offset >> 10)
+                          low = 0xDC00 + (offset & 0x3FF)
+                          escaped.append(f"\\u{high:04X}\\u{low:04X}")
+                  else:
+                      escaped.append(character)
+              return "".join(escaped)
+
+          for name in ("HOOT_ANDROID_KEYSTORE_PASSWORD", "HOOT_ANDROID_KEY_PASSWORD"):
+              if not os.environ[name].isascii():
+                  raise SystemExit(f"{name} must contain ASCII characters for Android keystore signing; value redacted")
 
           values = {
               "release.storeFile": os.environ["HOOT_ANDROID_KEYSTORE_PATH"],

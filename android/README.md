@@ -35,6 +35,10 @@ Before pushing an Android release tag, configure these GitHub Actions repository
 - `HOOT_ANDROID_KEY_ALIAS`
 - `HOOT_ANDROID_KEY_PASSWORD`
 
+The Java keystore passwords must use ASCII characters. If either secret contains non-ASCII characters, the workflow
+fails with the secret name only; it never prints the secret value. Keep using the same signing key so existing Android
+installs remain update-compatible.
+
 For each later Android release, increment `versionCode`, set `versionName` in `app/build.gradle.kts`, and push the
 matching `android-v<versionName>` tag. Android version numbers are independent of Windows HOOT versions.
 
@@ -49,7 +53,7 @@ its own APK.
 The first downloadable asset will be at:
 
 ```text
-https://github.com/sugan0025/HOOT/releases/download/android-v1.0.1/Hoot-Android.apk
+https://github.com/sugan0025/HOOT/releases/download/android-v1.0.2/Hoot-Android.apk
 ```
 
-That URL becomes usable after the signing secrets are configured and the `android-v1.0.1` release workflow succeeds.
+That URL becomes usable after the signing secrets are configured and the `android-v1.0.2` release workflow succeeds.
