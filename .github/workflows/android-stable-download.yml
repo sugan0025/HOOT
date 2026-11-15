@@ -1,0 +1,161 @@
+name: HOOT Android Stable Download
+
+on:
+  # One-time seed from the latest published Android release.
+  push:
+    tags: ['android']
+  # Refresh after every successful versioned Android release.
+  workflow_run:
+    workflows: ['HOOT Android Release']
+    types: [completed]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: hoot-android-stable-download
+  cancel-in-progress: false
+
+jobs:
+  refresh-stable-apk:
+    if: >-
+      (github.event_name == 'push' && github.ref == 'refs/tags/android') ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: 'build-tools;37.0.0'
+
+      - name: Select latest published Android release
+        id: source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/releases?per_page=100" > "$RUNNER_TEMP/releases.json"
+          source_tag="$(python3 - "$RUNNER_TEMP/releases.json" <<'PY'
+          import json
+          import re
+          import sys
+          from pathlib import Path
+
+          pages = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+          releases = [release for page in pages for release in page]
+          candidates = []
+          required = {"Hoot-Android.apk", "Hoot-Android-update.json"}
+          for release in releases:
+              tag = release.get("tag_name", "")
+              version = re.fullmatch(r"android-v(\d+)\.(\d+)\.(\d+)", tag)
+              names = {asset.get("name") for asset in release.get("assets", [])}
+              if version and not release.get("draft") and not release.get("prerelease") and required <= names:
+                  candidates.append((tuple(map(int, version.groups())), tag))
+          if not candidates:
+              raise SystemExit("No published Android release with both required assets was found")
+          print(max(candidates)[1])
+          PY
+          )"
+          [[ "$source_tag" =~ ^android-v[0-9]+\.[0-9]+\.[0-9]+$ ]] || {
+            echo "::error::Selected Android release tag is invalid."
+            exit 1
+          }
+          echo "tag=$source_tag" >> "$GITHUB_OUTPUT"
+
+      - name: Download and verify the published Android APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_TAG: ${{ steps.source.outputs.tag }}
+          EXPECTED_SIGNER: 30e9d23fb1a37a9d9dc1f117e2366d23a17186cf745b0570b7b909f75602fcd6
+        run: |
+          set -euo pipefail
+          package_dir="$RUNNER_TEMP/hoot-android-stable"
+          mkdir -p "$package_dir"
+          gh release download "$SOURCE_TAG" --repo "$GITHUB_REPOSITORY" \
+            --pattern Hoot-Android.apk \
+            --pattern Hoot-Android-update.json \
+            --dir "$package_dir"
+          python3 - "$package_dir" "$SOURCE_TAG" "$EXPECTED_SIGNER" "$GITHUB_REPOSITORY" <<'PY'
+          import hashlib
+          import json
+          import os
+          import subprocess
+          import sys
+          from pathlib import Path
+
+          directory = Path(sys.argv[1])
+          tag = sys.argv[2]
+          expected_signer = sys.argv[3]
+          repository = sys.argv[4]
+          apk = directory / "Hoot-Android.apk"
+          metadata = json.loads((directory / "Hoot-Android-update.json").read_text(encoding="utf-8"))
+          actual_hash = hashlib.sha256(apk.read_bytes()).hexdigest()
+          checks = {
+              "metadata_tag_matches": metadata.get("tag") == tag,
+              "metadata_version_name_matches": tag == f"android-v{metadata.get('versionName', '')}",
+              "metadata_version_code_is_positive": isinstance(metadata.get("versionCode"), int) and metadata["versionCode"] > 0,
+              "metadata_app_id_matches": metadata.get("applicationId") == "app.hoot",
+              "metadata_download_url_matches": metadata.get("apkUrl") == f"https://github.com/{repository}/releases/download/{tag}/Hoot-Android.apk",
+              "metadata_size_matches": metadata.get("apkSizeBytes") == apk.stat().st_size,
+              "metadata_sha256_matches": metadata.get("sha256") == actual_hash,
+              "metadata_signer_matches": metadata.get("signerSha256") == expected_signer,
+          }
+          for name, passed in checks.items():
+              print(f"{name}={str(passed).lower()}")
+          if not all(checks.values()):
+              raise SystemExit("Published Android APK metadata or SHA-256 verification failed")
+
+          sys.path.insert(0, "android/scripts")
+          from create_release_metadata import signer_sha256
+
+          signer = subprocess.run(
+              [str(Path(os.environ["ANDROID_HOME"]) / "build-tools/37.0.0/apksigner"), "verify", "--print-certs", str(apk)],
+              check=True,
+              capture_output=True,
+              text=True,
+          )
+          if signer_sha256(signer.stdout, signer.stderr) != expected_signer:
+              raise SystemExit("APK signature does not match the established HOOT Android signer")
+          print("apk_signature_matches_installed_identity=true")
+          PY
+
+      - name: Create or refresh the Android-only stable asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_TAG: ${{ steps.source.outputs.tag }}
+        run: |
+          set -euo pipefail
+          stable_tag=android
+          release_id="$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$stable_tag" --jq .id 2>/dev/null || true)"
+          if [[ -z "$release_id" ]]; then
+            response="$(gh api --method POST "repos/$GITHUB_REPOSITORY/releases" \
+              -f "tag_name=$stable_tag" \
+              -f "target_commitish=$GITHUB_SHA" \
+              -f "name=HOOT Android Stable Download" \
+              -f "body=Stable Android download alias. This Android-only release points to the latest verified Android APK and does not affect the Windows release channel." \
+              -F draft=true \
+              -f make_latest=false)"
+            release_id="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["id"])' <<< "$response")"
+          fi
+          cp "$RUNNER_TEMP/hoot-android-stable/Hoot-Android.apk" "$RUNNER_TEMP/hoot-android-stable/hoot.apk"
+          gh release upload "$stable_tag" "$RUNNER_TEMP/hoot-android-stable/hoot.apk" \
+            --repo "$GITHUB_REPOSITORY" --clobber
+          gh api --method PATCH "repos/$GITHUB_REPOSITORY/releases/$release_id" \
+            -f "name=HOOT Android Stable Download" \
+            -f "body=Stable Android download alias. Updated from $SOURCE_TAG after release and signer verification. This Android-only release does not affect the Windows release channel." \
+            -f make_latest=false > "$RUNNER_TEMP/stable-release.json"
+          python3 - "$RUNNER_TEMP/stable-release.json" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          release = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+          if release.get("tag_name") != "android" or release.get("draft") or release.get("prerelease"):
+              raise SystemExit("Stable Android release did not publish in the expected state")
+          assets = {asset["name"]: asset for asset in release.get("assets", [])}
+          if "hoot.apk" not in assets:
+              raise SystemExit("Stable Android APK asset is missing")
+          print(f"stable_asset_url={assets['hoot.apk']['browser_download_url']}")
+          print(f"stable_asset_size={assets['hoot.apk']['size']}")
+          PY
