@@ -613,6 +613,8 @@ public class PaletteChipTipViewTests
         Assert.False(ToolTip.GetIsOpen(next));
 
         var chip = view.Chip("test-tip-docx");
+        view.Window.MouseMove(view.Center(chip));
+        RenderTests.Pump();
         View.Open(chip);
         chip.RaiseEvent(new TappedEventArgs(InputElement.DoubleTappedEvent, null!));
         Assert.False(ToolTip.GetIsOpen(chip));

@@ -14,6 +14,17 @@ change, a language may repeat; a language without lines shows the English ones):
 - `recommended`: bug fixes. The card shows once per version.
 - `optional`: new features only. No card, the sidebar button only.
 
+## 2.6.5
+
+<!-- update
+level: optional
+en: The desktop Blob can show music details, synced lyrics, and playback controls for supported players.
+en: The companion UI and translated labels have been refined, with privacy-aware password-field behavior.
+-->
+
+- **Music companion**: The desktop Blob can show track and artist details, synced lyrics when available, and previous/next controls for supported Windows media sessions.
+- **Companion polish**: Refined music-card presentation, companion quips and password-field privacy behavior; added localized labels for all shipped languages.
+
 ## 2.6.4
 
 <!-- update
