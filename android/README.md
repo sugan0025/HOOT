@@ -50,10 +50,13 @@ The updater validates the release metadata, APK size and SHA-256, package ID, ve
 Android still requires the user to approve package installation in system settings; the app cannot silently install
 its own APK.
 
-The Android 1.0.4 APK will be available at:
+Use this short permanent link in Android QR codes:
 
 ```text
-https://github.com/sugan0025/HOOT/releases/download/android-v1.0.4/Hoot-Android.apk
+https://sugan0025.github.io
 ```
 
-That URL becomes usable after the `android-v1.0.4` release workflow succeeds.
+The page redirects to the stable Android APK download. The stable Android-only
+release asset is refreshed after each successful `android-v*` release. Versioned
+releases and their metadata remain the source for in-app updates. This does not
+change the Windows release channel.
