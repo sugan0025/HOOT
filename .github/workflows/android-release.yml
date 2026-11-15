@@ -1,0 +1,101 @@
+name: HOOT Android Release
+
+on:
+  push:
+    tags: ['android-v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+          cache-dependency-path: android/**/*.gradle*
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platforms;android-36 build-tools;36.0.0'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Configure Android release signing
+        env:
+          HOOT_ANDROID_KEYSTORE_BASE64: ${{ secrets.HOOT_ANDROID_KEYSTORE_BASE64 }}
+          HOOT_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.HOOT_ANDROID_KEYSTORE_PASSWORD }}
+          HOOT_ANDROID_KEY_ALIAS: ${{ secrets.HOOT_ANDROID_KEY_ALIAS }}
+          HOOT_ANDROID_KEY_PASSWORD: ${{ secrets.HOOT_ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for name in HOOT_ANDROID_KEYSTORE_BASE64 HOOT_ANDROID_KEYSTORE_PASSWORD HOOT_ANDROID_KEY_ALIAS HOOT_ANDROID_KEY_PASSWORD; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "::error::Configure the $name GitHub Actions secret before publishing Android releases."
+              exit 1
+            fi
+          done
+          key="$RUNNER_TEMP/hoot-release.keystore"
+          printf '%s' "$HOOT_ANDROID_KEYSTORE_BASE64" | base64 --decode > "$key"
+          chmod 600 "$key"
+          export HOOT_ANDROID_KEYSTORE_PATH="$key"
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+
+          def escape(value: str) -> str:
+              return (value.replace("\\", "\\\\").replace("\n", "\\n").replace("\r", "\\r")
+                      .replace("\t", "\\t").replace("=", "\\=").replace(":", "\\:"))
+
+          values = {
+              "release.storeFile": os.environ["HOOT_ANDROID_KEYSTORE_PATH"],
+              "release.storePassword": os.environ["HOOT_ANDROID_KEYSTORE_PASSWORD"],
+              "release.keyAlias": os.environ["HOOT_ANDROID_KEY_ALIAS"],
+              "release.keyPassword": os.environ["HOOT_ANDROID_KEY_PASSWORD"],
+          }
+          Path("keystore.properties").write_text(
+              "".join(f"{key}={escape(value)}\n" for key, value in values.items()), encoding="utf-8"
+          )
+          PY
+      - name: Test and build the signed Android APK
+        run: ./gradlew --no-daemon :app:testReleaseUnitTest :app:assembleRelease
+      - name: Create update metadata
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          apk="app/build/outputs/apk/release/app-release.apk"
+          metadata="build/release/Hoot-Android-update.json"
+          apksigner="$(find "$ANDROID_HOME/build-tools" -maxdepth 2 -type f -name apksigner | sort -V | tail -n 1)"
+          python3 scripts/create_release_metadata.py \
+            --apk "$apk" \
+            --output "$metadata" \
+            --output-metadata app/build/outputs/apk/release/output-metadata.json \
+            --apksigner "$apksigner" \
+            --tag "$TAG" \
+            --release-notes "HOOT Android $TAG. Install through the Android package installer; no Google Play account is required."
+      - name: Create non-latest Android GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          version="${TAG#android-v}"
+          body="HOOT for Android $version. This Android-only release is intentionally not the repository's latest release, preserving the Windows updater's v* release channel."
+          response="$(gh api --method POST "repos/$GITHUB_REPOSITORY/releases" \
+            -f "tag_name=$TAG" \
+            -f "name=HOOT Android $version" \
+            -f "body=$body" \
+            -F draft=true \
+            -f make_latest=false)"
+          release_id="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["id"])' <<< "$response")"
+          gh release upload "$TAG" \
+            app/build/outputs/apk/release/app-release.apk#Hoot-Android.apk \
+            build/release/Hoot-Android-update.json#Hoot-Android-update.json
+          gh api --method PATCH "repos/$GITHUB_REPOSITORY/releases/$release_id" \
+            -F draft=false \
+            -f make_latest=false
