@@ -1,0 +1,111 @@
+name: HOOT Android Signing Diagnostic
+
+on:
+  push:
+    branches:
+      - codex/android-signing-diagnostic
+    paths:
+      - .github/workflows/android-signing-diagnostic.yml
+
+permissions:
+  contents: read
+
+jobs:
+  signing-preflight:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Validate signing inputs without exposing secrets
+        env:
+          HOOT_ANDROID_KEYSTORE_BASE64: ${{ secrets.HOOT_ANDROID_KEYSTORE_BASE64 }}
+          HOOT_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.HOOT_ANDROID_KEYSTORE_PASSWORD }}
+          HOOT_ANDROID_KEY_ALIAS: ${{ secrets.HOOT_ANDROID_KEY_ALIAS }}
+          HOOT_ANDROID_KEY_PASSWORD: ${{ secrets.HOOT_ANDROID_KEY_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          set +x
+          for name in HOOT_ANDROID_KEYSTORE_BASE64 HOOT_ANDROID_KEYSTORE_PASSWORD HOOT_ANDROID_KEY_ALIAS HOOT_ANDROID_KEY_PASSWORD; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "$name present=false"
+              exit 1
+            fi
+            echo "$name present=true"
+          done
+
+          key="$RUNNER_TEMP/hoot-signing-diagnostic.keystore"
+          trap 'rm -f "$key" "$RUNNER_TEMP/SigningPreflight.java" "$RUNNER_TEMP/SigningPreflight.class"' EXIT
+          printf '%s' "$HOOT_ANDROID_KEYSTORE_BASE64" | base64 --decode > "$key"
+          chmod 600 "$key"
+
+          cat > "$RUNNER_TEMP/SigningPreflight.java" <<'JAVA'
+          import java.io.FileInputStream;
+          import java.security.Key;
+          import java.security.KeyStore;
+          import java.security.MessageDigest;
+          import java.security.cert.Certificate;
+          import java.util.HexFormat;
+
+          public class SigningPreflight {
+            private static final String EXPECTED = "30e9d23fb1a37a9d9dc1f117e2366d23a17186cf745b0570b7b909f75602fcd6";
+
+            public static void main(String[] args) throws Exception {
+              String path = System.getenv("KEYSTORE_PATH");
+              String alias = System.getenv("HOOT_ANDROID_KEY_ALIAS");
+              char[] storePassword = System.getenv("HOOT_ANDROID_KEYSTORE_PASSWORD").toCharArray();
+              char[] keyPassword = System.getenv("HOOT_ANDROID_KEY_PASSWORD").toCharArray();
+              KeyStore store = null;
+              String selectedType = "";
+              for (String type : new String[] { "PKCS12", "JKS" }) {
+                try (FileInputStream input = new FileInputStream(path)) {
+                  KeyStore candidate = KeyStore.getInstance(type);
+                  candidate.load(input, storePassword);
+                  store = candidate;
+                  selectedType = type;
+                  break;
+                } catch (Exception ignored) {
+                  // Try the other standard Android keystore format; never print exception text.
+                }
+              }
+
+              System.out.println("keystore_opens=" + (store != null));
+              if (store == null) return;
+              System.out.println("keystore_format=" + selectedType);
+              boolean aliasExists = store.containsAlias(alias);
+              System.out.println("alias_exists=" + aliasExists);
+              if (!aliasExists) return;
+              boolean keyEntry = store.isKeyEntry(alias);
+              System.out.println("alias_is_key_entry=" + keyEntry);
+              Certificate certificate = store.getCertificate(alias);
+              boolean fingerprintMatches = false;
+              if (certificate != null) {
+                byte[] digest = MessageDigest.getInstance("SHA-256").digest(certificate.getEncoded());
+                fingerprintMatches = HexFormat.of().formatHex(digest).equalsIgnoreCase(EXPECTED);
+              }
+              System.out.println("expected_signing_certificate_matches=" + fingerprintMatches);
+              if (!keyEntry) return;
+              try {
+                Key key = store.getKey(alias, keyPassword);
+                System.out.println("configured_private_key_password_unlocks_key=" + (key != null));
+              } catch (Exception error) {
+                System.out.println("configured_private_key_password_unlocks_key=false");
+                System.out.println("configured_password_failure_type=" + error.getClass().getSimpleName());
+              }
+              try {
+                Key key = store.getKey(alias, storePassword);
+                System.out.println("store_password_also_unlocks_private_key=" + (key != null));
+              } catch (Exception error) {
+                System.out.println("store_password_also_unlocks_private_key=false");
+                System.out.println("store_password_key_check_failure_type=" + error.getClass().getSimpleName());
+              }
+            }
+          }
+          JAVA
+
+          export KEYSTORE_PATH="$key"
+          javac -d "$RUNNER_TEMP" "$RUNNER_TEMP/SigningPreflight.java"
+          java -cp "$RUNNER_TEMP" SigningPreflight
