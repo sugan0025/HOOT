@@ -38,6 +38,18 @@ jobs:
             echo "$name present=true"
           done
 
+          echo "workflow_repository=$GITHUB_REPOSITORY"
+          echo "workflow_environment_bound=false"
+          python3 - <<'PY'
+          import os
+
+          store_password = os.environ["HOOT_ANDROID_KEYSTORE_PASSWORD"]
+          key_password = os.environ["HOOT_ANDROID_KEY_PASSWORD"]
+          print(f"configured_passwords_equal={str(store_password == key_password).lower()}")
+          print(f"store_password_has_outer_whitespace={str(store_password != store_password.strip()).lower()}")
+          print(f"key_password_has_outer_whitespace={str(key_password != key_password.strip()).lower()}")
+          PY
+
           key="$RUNNER_TEMP/hoot-signing-diagnostic.keystore"
           trap 'rm -f "$key" "$RUNNER_TEMP/SigningPreflight.java" "$RUNNER_TEMP/SigningPreflight.class"' EXIT
           printf '%s' "$HOOT_ANDROID_KEYSTORE_BASE64" | base64 --decode > "$key"
