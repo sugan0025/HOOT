@@ -1,9 +1,9 @@
 name: HOOT Android Stable Download
 
 on:
-  # One-time seed from the latest published Android release.
+  # Seed or manually repair the alias from the latest published Android release.
   push:
-    tags: ['android']
+    tags: ['android', 'android-alias-bootstrap']
   # Refresh after every successful versioned Android release.
   workflow_run:
     workflows: ['HOOT Android Release']
@@ -19,7 +19,8 @@ concurrency:
 jobs:
   refresh-stable-apk:
     if: >-
-      (github.event_name == 'push' && github.ref == 'refs/tags/android') ||
+      (github.event_name == 'push' &&
+       (github.ref == 'refs/tags/android' || github.ref == 'refs/tags/android-alias-bootstrap')) ||
       (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
     steps:
@@ -127,16 +128,33 @@ jobs:
         run: |
           set -euo pipefail
           stable_tag=android
-          release_id="$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$stable_tag" --jq .id 2>/dev/null || true)"
+          gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/releases?per_page=100" > "$RUNNER_TEMP/releases-before-upload.json"
+          release_id="$(python3 - "$RUNNER_TEMP/releases-before-upload.json" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          pages = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+          releases = [release for page in pages for release in page]
+          for release in releases:
+              if release.get("tag_name") == "android":
+                  print(release["id"])
+                  break
+          PY
+          )"
           if [[ -z "$release_id" ]]; then
             response="$(gh api --method POST "repos/$GITHUB_REPOSITORY/releases" \
               -f "tag_name=$stable_tag" \
               -f "target_commitish=$GITHUB_SHA" \
               -f "name=HOOT Android Stable Download" \
               -f "body=Stable Android download alias. This Android-only release points to the latest verified Android APK and does not affect the Windows release channel." \
-              -F draft=true \
+              -F draft=false \
               -f make_latest=false)"
             release_id="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["id"])' <<< "$response")"
+          else
+            gh api --method PATCH "repos/$GITHUB_REPOSITORY/releases/$release_id" \
+              -F draft=false \
+              -f make_latest=false > "$RUNNER_TEMP/stable-release-published.json"
           fi
           cp "$RUNNER_TEMP/hoot-android-stable/Hoot-Android.apk" "$RUNNER_TEMP/hoot-android-stable/hoot.apk"
           gh release upload "$stable_tag" "$RUNNER_TEMP/hoot-android-stable/hoot.apk" \
