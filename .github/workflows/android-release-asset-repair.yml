@@ -1,0 +1,117 @@
+name: Repair HOOT Android 1.0.4 APK Asset Name
+
+on:
+  push:
+    branches:
+      - codex/android-signing-diagnostic
+    paths:
+      - .github/workflows/android-release-asset-repair.yml
+
+permissions:
+  contents: read
+
+jobs:
+  repair-asset-name:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - name: Verify and rename the existing APK release asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="android-v1.0.4"
+          expected_signer="30e9d23fb1a37a9d9dc1f117e2366d23a17186cf745b0570b7b909f75602fcd6"
+          work="$RUNNER_TEMP/hoot-android-asset-repair"
+          mkdir -p "$work"
+
+          gh api "repos/$GITHUB_REPOSITORY/releases/tags/$tag" > "$work/release-before.json"
+          gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern "app-release.apk" --dir "$work"
+          gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern "Hoot-Android-update.json" --dir "$work"
+
+          python3 - "$work" "$GITHUB_REPOSITORY" "$tag" "$expected_signer" <<'PY'
+          import hashlib
+          import json
+          import pathlib
+          import sys
+
+          work = pathlib.Path(sys.argv[1])
+          repository = sys.argv[2]
+          tag = sys.argv[3]
+          expected_signer = sys.argv[4]
+          release = json.loads((work / "release-before.json").read_text(encoding="utf-8"))
+          assets = {asset["name"]: asset for asset in release.get("assets", [])}
+          if "app-release.apk" not in assets:
+              raise SystemExit("Expected current app-release.apk asset was not found")
+          metadata = json.loads((work / "Hoot-Android-update.json").read_text(encoding="utf-8"))
+          expected_url = f"https://github.com/{repository}/releases/download/{tag}/Hoot-Android.apk"
+          if metadata.get("apkUrl") != expected_url:
+              raise SystemExit("Update metadata does not point to the expected HOOT APK filename")
+          if metadata.get("versionName") != "1.0.4" or metadata.get("versionCode") != 5:
+              raise SystemExit("Update metadata version does not match Android 1.0.4")
+          if metadata.get("signerSha256", "").lower() != expected_signer:
+              raise SystemExit("Update metadata signer does not match the installed HOOT identity")
+          apk = work / "app-release.apk"
+          digest = hashlib.sha256(apk.read_bytes()).hexdigest()
+          if digest != metadata.get("sha256", "").lower():
+              raise SystemExit("Downloaded APK does not match the update metadata SHA-256")
+          if apk.stat().st_size != metadata.get("apkSizeBytes"):
+              raise SystemExit("Downloaded APK size does not match the update metadata")
+          renamed = work / "Hoot-Android.apk"
+          renamed.write_bytes(apk.read_bytes())
+          if hashlib.sha256(renamed.read_bytes()).hexdigest() != digest:
+              raise SystemExit("Renamed APK hash changed unexpectedly")
+          print("existing_apk_matches_metadata=true")
+          print("metadata_signer_matches_installed_identity=true")
+          print("metadata_download_url_is_correct=true")
+          print(f"apk_sha256={digest}")
+          PY
+
+          release_json="$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$tag")"
+          existing_named_asset="$(python3 -c 'import json,sys; d=json.load(sys.stdin); print(any(a["name"]=="Hoot-Android.apk" for a in d.get("assets",[])))' <<< "$release_json")"
+          if [[ "$existing_named_asset" != "true" ]]; then
+            gh release upload "$tag" --repo "$GITHUB_REPOSITORY" "$work/Hoot-Android.apk"
+          fi
+
+          gh api "repos/$GITHUB_REPOSITORY/releases/tags/$tag" > "$work/release-after-upload.json"
+          python3 - "$work/release-after-upload.json" "$work/Hoot-Android.apk" <<'PY'
+          import hashlib
+          import json
+          import pathlib
+          import sys
+
+          release = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+          apk_path = pathlib.Path(sys.argv[2])
+          expected = hashlib.sha256(apk_path.read_bytes()).hexdigest()
+          assets = {asset["name"]: asset for asset in release.get("assets", [])}
+          asset = assets.get("Hoot-Android.apk")
+          if asset is None or asset.get("digest") != f"sha256:{expected}":
+              raise SystemExit("Correctly named APK asset was not uploaded with the verified hash")
+          print("correctly_named_apk_asset_verified=true")
+          PY
+
+          old_asset_id="$(python3 -c 'import json,sys; d=json.load(sys.stdin); print(next((a["id"] for a in d.get("assets",[]) if a["name"]=="app-release.apk"), ""))' <<< "$release_json")"
+          if [[ -n "$old_asset_id" ]]; then
+            gh api --method DELETE "repos/$GITHUB_REPOSITORY/releases/assets/$old_asset_id"
+          fi
+
+          gh api "repos/$GITHUB_REPOSITORY/releases/tags/$tag" > "$work/release-final.json"
+          python3 - "$work/release-final.json" <<'PY'
+          import json
+          import pathlib
+          import sys
+
+          release = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+          names = {asset["name"] for asset in release.get("assets", [])}
+          if "Hoot-Android.apk" not in names or "Hoot-Android-update.json" not in names:
+              raise SystemExit("Final Android release is missing its expected assets")
+          if "app-release.apk" in names:
+              raise SystemExit("Legacy-named APK asset still exists")
+          if release.get("draft") or release.get("prerelease"):
+              raise SystemExit("Android release should remain published and non-prerelease")
+          print("final_android_assets_verified=true")
+          print(f"release_url={release['html_url']}")
+          PY
