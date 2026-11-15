@@ -1558,5 +1558,9 @@
   "engines.package.exiftool.name": "ExifTool (metadata)",
   "engines.package.exiftool.description": "Membaca semua bidang metadata gambar, PDF, video, dan audio, serta mengeditnya di sebagian besar jenis file tanpa menyentuh isi file.\nDigunakan oleh alat Metadata; tanpanya, bidang hanya dapat dibaca.",
   "engines.guidance.macos.exiftool": "Pasang menggunakan Homebrew (brew install exiftool), lalu pilih “Periksa lagi”.\nAtau pilih “Gunakan salinan saya…” dan tentukan foldernya.",
-  "engines.guidance.linux.exiftool": "Pasang melalui pengelola paket Anda (Ubuntu/Debian: sudo apt install libimage-exiftool-perl), lalu pilih “Periksa lagi”."
+  "engines.guidance.linux.exiftool": "Pasang melalui pengelola paket Anda (Ubuntu/Debian: sudo apt install libimage-exiftool-perl), lalu pilih “Periksa lagi”.",
+  "general.blob_music_display": "Tampilkan lagu dan kontrol Spotify / Amazon Music pada Blob (lokal)",
+  "general.blob_music_lyrics": "Tampilkan lirik melalui LRCLIB (mengirim lagu, artis, album, dan durasi)",
+  "companion.previous_track": "Lagu sebelumnya",
+  "companion.next_track": "Lagu berikutnya"
 }

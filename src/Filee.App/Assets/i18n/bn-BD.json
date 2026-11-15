@@ -1558,5 +1558,9 @@
   "engines.package.exiftool.name": "ExifTool (মেটাডেটা)",
   "engines.package.exiftool.description": "ছবি, PDF, ভিডিও ও শব্দের প্রতিটি মেটাডেটা ফিল্ড পড়ে এবং ফাইলের বিষয়বস্তু না ছুঁয়ে বেশিরভাগ ধরনের ফাইলে সেগুলো সম্পাদনা করে।\nমেটাডেটা টুল এটি ব্যবহার করে; এটি ছাড়া ফিল্ডগুলো শুধু পড়ার জন্য দেখানো হয়।",
   "engines.guidance.macos.exiftool": "Homebrew দিয়ে ইনস্টল করুন (brew install exiftool), তারপর “আবার যাচাই করুন” বেছে নিন।\nঅথবা “আমার কপি ব্যবহার করুন…” বেছে নিয়ে এর ফোল্ডার নির্বাচন করুন।",
-  "engines.guidance.linux.exiftool": "আপনার প্যাকেজ ম্যানেজার দিয়ে ইনস্টল করুন (Ubuntu/Debian: sudo apt install libimage-exiftool-perl), তারপর “আবার যাচাই করুন” বেছে নিন।"
+  "engines.guidance.linux.exiftool": "আপনার প্যাকেজ ম্যানেজার দিয়ে ইনস্টল করুন (Ubuntu/Debian: sudo apt install libimage-exiftool-perl), তারপর “আবার যাচাই করুন” বেছে নিন।",
+  "general.blob_music_display": "Blob-এ Spotify / Amazon Music-এর গান ও নিয়ন্ত্রণ দেখান (স্থানীয়)",
+  "general.blob_music_lyrics": "LRCLIB-এর মাধ্যমে গানের কথা দেখান (গান, শিল্পী, অ্যালবাম ও সময়কাল পাঠায়)",
+  "companion.previous_track": "আগের গান",
+  "companion.next_track": "পরের গান"
 }

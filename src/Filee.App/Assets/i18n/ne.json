@@ -1558,5 +1558,9 @@
   "engines.package.exiftool.name": "ExifTool (मेटाडेटा)",
   "engines.package.exiftool.description": "चित्र, PDF, भिडियो र अडियोका सबै मेटाडाटा फिल्ड पढ्छ, र धेरैजसो प्रकारका फाइलमा फाइलको सामग्री नछोई तिनलाई सम्पादन गर्छ।\nमेटाडाटा उपकरणले यसलाई प्रयोग गर्छ; यसबिना फिल्डहरू पढ्न मात्र मिल्ने गरी देखिन्छन्।",
   "engines.guidance.macos.exiftool": "Homebrew बाट स्थापना गर्नुहोस् (brew install exiftool), त्यसपछि «फेरि जाँच्नुहोस्» छान्नुहोस्।\nवा «मेरो प्रतिलिपि प्रयोग गर्नुहोस्…» छानेर यसको फोल्डर छान्नुहोस्।",
-  "engines.guidance.linux.exiftool": "प्याकेज म्यानेजरबाट स्थापना गर्नुहोस् (Ubuntu/Debian: sudo apt install libimage-exiftool-perl), त्यसपछि «फेरि जाँच्नुहोस्» छान्नुहोस्।"
+  "engines.guidance.linux.exiftool": "प्याकेज म्यानेजरबाट स्थापना गर्नुहोस् (Ubuntu/Debian: sudo apt install libimage-exiftool-perl), त्यसपछि «फेरि जाँच्नुहोस्» छान्नुहोस्।",
+  "general.blob_music_display": "Blob मा Spotify / Amazon Music को ट्र्याक र नियन्त्रण देखाउनुहोस् (स्थानीय)",
+  "general.blob_music_lyrics": "LRCLIB मार्फत गीतका शब्द देखाउनुहोस् (ट्र्याक, कलाकार, एल्बम र अवधि पठाउँछ)",
+  "companion.previous_track": "अघिल्लो ट्र्याक",
+  "companion.next_track": "अर्को ट्र्याक"
 }

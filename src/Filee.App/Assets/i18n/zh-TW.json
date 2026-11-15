@@ -1560,5 +1560,9 @@
   "engines.package.exiftool.name": "ExifTool（中繼資料）",
   "engines.package.exiftool.description": "讀取圖片、PDF、影片和音訊的所有中繼資料欄位，並在大多數類型的檔案中編輯它們，不更動檔案內容。\n供「中繼資料」工具使用；沒有它時，欄位只能檢視。",
   "engines.guidance.macos.exiftool": "用 Homebrew 安裝（brew install exiftool），然後選擇「重新檢查」。\n或選擇「使用我的副本…」並選取其資料夾。",
-  "engines.guidance.linux.exiftool": "用套件管理員安裝（Ubuntu/Debian：sudo apt install libimage-exiftool-perl），然後選擇「重新檢查」。"
+  "engines.guidance.linux.exiftool": "用套件管理員安裝（Ubuntu/Debian：sudo apt install libimage-exiftool-perl），然後選擇「重新檢查」。",
+  "general.blob_music_display": "在 Blob 上顯示 Spotify / Amazon Music 曲目與控制項（本機）",
+  "general.blob_music_lyrics": "透過 LRCLIB 顯示歌詞（會傳送曲目、演出者、專輯與時長）",
+  "companion.previous_track": "上一首",
+  "companion.next_track": "下一首"
 }

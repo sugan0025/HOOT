@@ -1558,5 +1558,9 @@
   "engines.package.exiftool.name": "ExifTool (मेटाडेटा)",
   "engines.package.exiftool.description": "चित्रों, PDF, वीडियो और ऑडियो के सभी मेटाडेटा फ़ील्ड पढ़ता है, और ज़्यादातर तरह की फ़ाइलों में फ़ाइल की सामग्री छुए बिना उन्हें बदलता है।\nमेटाडेटा टूल इसका उपयोग करता है; इसके बिना फ़ील्ड केवल पढ़ने के लिए दिखते हैं।",
   "engines.guidance.macos.exiftool": "Homebrew से इंस्टॉल करें (brew install exiftool), फिर «फिर से जाँचें» चुनें।\nया «मेरी कॉपी इस्तेमाल करें…» चुनकर उसका फ़ोल्डर चुनें।",
-  "engines.guidance.linux.exiftool": "अपने पैकेज मैनेजर से इंस्टॉल करें (Ubuntu/Debian: sudo apt install libimage-exiftool-perl), फिर «फिर से जाँचें» चुनें।"
+  "engines.guidance.linux.exiftool": "अपने पैकेज मैनेजर से इंस्टॉल करें (Ubuntu/Debian: sudo apt install libimage-exiftool-perl), फिर «फिर से जाँचें» चुनें।",
+  "general.blob_music_display": "Blob पर Spotify / Amazon Music का ट्रैक और नियंत्रण दिखाएँ (स्थानीय)",
+  "general.blob_music_lyrics": "LRCLIB से बोल दिखाएँ (ट्रैक, कलाकार, एल्बम और अवधि भेजता है)",
+  "companion.previous_track": "पिछला ट्रैक",
+  "companion.next_track": "अगला ट्रैक"
 }

@@ -1558,5 +1558,9 @@
   "engines.package.exiftool.name": "ExifTool (meta veriler)",
   "engines.package.exiftool.description": "Resimlerin, PDF'lerin, videonun ve sesin tüm üst veri alanlarını okur ve çoğu dosya türünde dosyanın içeriğine dokunmadan düzenler.\nÜst Veri aracı kullanır; o olmadan alanlar salt okunur gösterilir.",
   "engines.guidance.macos.exiftool": "Homebrew ile yükleyin (brew install exiftool), sonra \"Yeniden denetle\"yi seçin.\nYa da \"Kendi kopyamı kullan…\"ı seçip klasörünü seçin.",
-  "engines.guidance.linux.exiftool": "Paket yöneticinizle yükleyin (Ubuntu/Debian: sudo apt install libimage-exiftool-perl), sonra \"Yeniden denetle\"yi seçin."
+  "engines.guidance.linux.exiftool": "Paket yöneticinizle yükleyin (Ubuntu/Debian: sudo apt install libimage-exiftool-perl), sonra \"Yeniden denetle\"yi seçin.",
+  "general.blob_music_display": "Blob üzerinde Spotify / Amazon Music parçasını ve kontrollerini göster (yerel)",
+  "general.blob_music_lyrics": "LRCLIB ile şarkı sözlerini göster (parça, sanatçı, albüm ve süre gönderilir)",
+  "companion.previous_track": "Önceki parça",
+  "companion.next_track": "Sonraki parça"
 }

@@ -1560,5 +1560,9 @@
   "engines.package.exiftool.name": "ExifTool（元数据）",
   "engines.package.exiftool.description": "读取图片、PDF、视频和音频的所有元数据字段，并在大多数类型的文件中编辑它们，不改动文件内容。\n供“元数据”工具使用；没有它时，字段只能查看。",
   "engines.guidance.macos.exiftool": "用 Homebrew 安装（brew install exiftool），然后选择“重新检查”。\n或选择“使用我的副本…”并选中其文件夹。",
-  "engines.guidance.linux.exiftool": "用软件包管理器安装（Ubuntu/Debian：sudo apt install libimage-exiftool-perl），然后选择“重新检查”。"
+  "engines.guidance.linux.exiftool": "用软件包管理器安装（Ubuntu/Debian：sudo apt install libimage-exiftool-perl），然后选择“重新检查”。",
+  "general.blob_music_display": "在 Blob 上显示 Spotify / Amazon Music 曲目和控制按钮（本地）",
+  "general.blob_music_lyrics": "通过 LRCLIB 显示歌词（会发送曲目、艺人、专辑和时长）",
+  "companion.previous_track": "上一首",
+  "companion.next_track": "下一首"
 }

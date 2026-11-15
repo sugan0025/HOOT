@@ -1558,5 +1558,9 @@
   "engines.package.exiftool.name": "ExifTool (متادیتا)",
   "engines.package.exiftool.description": "همه فیلدهای متادیتای تصویر، PDF، ویدیو و صدا را می‌خواند و بدون دست زدن به محتوای فایل، آن‌ها را در بیشتر انواع فایل ویرایش می‌کند.\nابزار متادیتا از آن استفاده می‌کند؛ بدون آن فیلدها فقط‌خواندنی نمایش داده می‌شوند.",
   "engines.guidance.macos.exiftool": "آن را با Homebrew نصب کنید (brew install exiftool) و سپس «بررسی مجدد» را انتخاب کنید.\nیا «استفاده از نسخه من…» را انتخاب کنید و پوشه آن را برگزینید.",
-  "engines.guidance.linux.exiftool": "آن را با مدیر بسته خود نصب کنید (Ubuntu/Debian: sudo apt install libimage-exiftool-perl) و سپس «بررسی مجدد» را انتخاب کنید."
+  "engines.guidance.linux.exiftool": "آن را با مدیر بسته خود نصب کنید (Ubuntu/Debian: sudo apt install libimage-exiftool-perl) و سپس «بررسی مجدد» را انتخاب کنید.",
+  "general.blob_music_display": "نمایش آهنگ و کنترل‌های Spotify / Amazon Music روی Blob (محلی)",
+  "general.blob_music_lyrics": "نمایش متن آهنگ از طریق LRCLIB (نام آهنگ، هنرمند، آلبوم و مدت را ارسال می‌کند)",
+  "companion.previous_track": "آهنگ قبلی",
+  "companion.next_track": "آهنگ بعدی"
 }

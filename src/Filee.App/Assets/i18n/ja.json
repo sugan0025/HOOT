@@ -1558,5 +1558,9 @@
   "engines.package.exiftool.name": "ExifTool（メタデータ）",
   "engines.package.exiftool.description": "画像、PDF、動画、音声のすべてのメタデータ項目を読み取り、ほとんどの種類のファイルでは内容に触れずに編集します。\nメタデータツールが使います。ない場合、項目は読み取り専用で表示されます。",
   "engines.guidance.macos.exiftool": "Homebrew でインストール（brew install exiftool）してから「再確認」を選んでください。\nまたは「自分のコピーを使う…」でそのフォルダーを選んでください。",
-  "engines.guidance.linux.exiftool": "パッケージマネージャーでインストール（Ubuntu/Debian: sudo apt install libimage-exiftool-perl）してから「再確認」を選んでください。"
+  "engines.guidance.linux.exiftool": "パッケージマネージャーでインストール（Ubuntu/Debian: sudo apt install libimage-exiftool-perl）してから「再確認」を選んでください。",
+  "general.blob_music_display": "BlobにSpotify / Amazon Musicの曲と操作を表示（ローカル）",
+  "general.blob_music_lyrics": "LRCLIBで歌詞を表示（曲名、アーティスト、アルバム、再生時間を送信）",
+  "companion.previous_track": "前の曲",
+  "companion.next_track": "次の曲"
 }

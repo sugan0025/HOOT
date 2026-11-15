@@ -1558,5 +1558,9 @@
   "engines.package.exiftool.name": "ExifTool (البيانات الوصفية)",
   "engines.package.exiftool.description": "يقرأ كل حقول البيانات الوصفية للصور وملفات PDF والفيديو والصوت، ويعدّلها في معظم أنواع الملفات دون المساس بمحتوى الملف.\nتستخدمه أداة البيانات الوصفية؛ ومن دونه تُعرض الحقول للقراءة فقط.",
   "engines.guidance.macos.exiftool": "ثبّته باستخدام Homebrew ‏(brew install exiftool)، ثم اختر «تحقق مرة أخرى».\nأو اختر «استخدام نسختي…» وحدّد مجلده.",
-  "engines.guidance.linux.exiftool": "ثبّته بمدير الحزم (Ubuntu/Debian: sudo apt install libimage-exiftool-perl)، ثم اختر «تحقق مرة أخرى»."
+  "engines.guidance.linux.exiftool": "ثبّته بمدير الحزم (Ubuntu/Debian: sudo apt install libimage-exiftool-perl)، ثم اختر «تحقق مرة أخرى».",
+  "general.blob_music_display": "عرض المقطع وعناصر التحكم في Spotify / Amazon Music على Blob (محليًا)",
+  "general.blob_music_lyrics": "عرض كلمات الأغاني عبر LRCLIB (يرسل اسم المقطع والفنان والألبوم والمدة)",
+  "companion.previous_track": "المقطع السابق",
+  "companion.next_track": "المقطع التالي"
 }

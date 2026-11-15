@@ -1558,5 +1558,9 @@
   "engines.package.exiftool.name": "ExifTool (เมทาดาทา)",
   "engines.package.exiftool.description": "อ่านทุกฟิลด์เมทาดาตาของรูปภาพ PDF วิดีโอ และเสียง และแก้ไขได้ในไฟล์ส่วนใหญ่โดยไม่แตะต้องเนื้อหาของไฟล์\nเครื่องมือเมทาดาตาใช้สิ่งนี้ หากไม่มี ฟิลด์จะแสดงแบบอ่านอย่างเดียว",
   "engines.guidance.macos.exiftool": "ติดตั้งด้วย Homebrew (brew install exiftool) แล้วเลือก «ตรวจสอบอีกครั้ง»\nหรือเลือก «ใช้สำเนาของฉัน…» แล้วเลือกโฟลเดอร์ของมัน",
-  "engines.guidance.linux.exiftool": "ติดตั้งด้วยตัวจัดการแพ็กเกจ (Ubuntu/Debian: sudo apt install libimage-exiftool-perl) แล้วเลือก «ตรวจสอบอีกครั้ง»"
+  "engines.guidance.linux.exiftool": "ติดตั้งด้วยตัวจัดการแพ็กเกจ (Ubuntu/Debian: sudo apt install libimage-exiftool-perl) แล้วเลือก «ตรวจสอบอีกครั้ง»",
+  "general.blob_music_display": "แสดงเพลงและปุ่มควบคุม Spotify / Amazon Music บน Blob (ในเครื่อง)",
+  "general.blob_music_lyrics": "แสดงเนื้อเพลงผ่าน LRCLIB (ส่งชื่อเพลง ศิลปิน อัลบั้ม และความยาวเพลง)",
+  "companion.previous_track": "เพลงก่อนหน้า",
+  "companion.next_track": "เพลงถัดไป"
 }

@@ -1558,5 +1558,9 @@
   "engines.package.exiftool.name": "ExifTool (Metadaten)",
   "engines.package.exiftool.description": "Liest alle Metadatenfelder von Bildern, PDFs, Video und Audio und bearbeitet sie in den meisten Dateiarten, ohne den Inhalt der Datei zu verändern.\nVom Metadaten-Werkzeug genutzt; ohne es sind die Felder schreibgeschützt.",
   "engines.guidance.macos.exiftool": "Mit Homebrew installieren (brew install exiftool), dann „Erneut prüfen“ wählen.\nOder „Meine Kopie verwenden…“ wählen und den Ordner auswählen.",
-  "engines.guidance.linux.exiftool": "Mit der Paketverwaltung installieren (Ubuntu/Debian: sudo apt install libimage-exiftool-perl), dann „Erneut prüfen“ wählen."
+  "engines.guidance.linux.exiftool": "Mit der Paketverwaltung installieren (Ubuntu/Debian: sudo apt install libimage-exiftool-perl), dann „Erneut prüfen“ wählen.",
+  "general.blob_music_display": "Spotify-/Amazon-Music-Titel und Steuerung auf dem Blob anzeigen (lokal)",
+  "general.blob_music_lyrics": "Songtext über LRCLIB anzeigen (Titel, Interpret, Album und Dauer werden gesendet)",
+  "companion.previous_track": "Vorheriger Titel",
+  "companion.next_track": "Nächster Titel"
 }

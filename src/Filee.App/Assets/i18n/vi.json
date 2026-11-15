@@ -1558,5 +1558,9 @@
   "engines.package.exiftool.name": "ExifTool (siêu dữ liệu)",
   "engines.package.exiftool.description": "Đọc mọi trường siêu dữ liệu của ảnh, PDF, video và âm thanh, và sửa chúng ở hầu hết các loại tệp mà không đụng đến nội dung tệp.\nĐược công cụ Siêu dữ liệu dùng; không có nó, các trường chỉ đọc.",
   "engines.guidance.macos.exiftool": "Cài bằng Homebrew (brew install exiftool), rồi chọn “Kiểm tra lại”.\nHoặc chọn “Dùng bản của tôi…” và chọn thư mục của nó.",
-  "engines.guidance.linux.exiftool": "Cài bằng trình quản lý gói (Ubuntu/Debian: sudo apt install libimage-exiftool-perl), rồi chọn “Kiểm tra lại”."
+  "engines.guidance.linux.exiftool": "Cài bằng trình quản lý gói (Ubuntu/Debian: sudo apt install libimage-exiftool-perl), rồi chọn “Kiểm tra lại”.",
+  "general.blob_music_display": "Hiện bài hát và điều khiển Spotify / Amazon Music trên Blob (cục bộ)",
+  "general.blob_music_lyrics": "Hiện lời bài hát qua LRCLIB (gửi tên bài hát, nghệ sĩ, album và thời lượng)",
+  "companion.previous_track": "Bài trước",
+  "companion.next_track": "Bài tiếp theo"
 }

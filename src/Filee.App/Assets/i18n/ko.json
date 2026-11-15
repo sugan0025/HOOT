@@ -1560,5 +1560,9 @@
   "engines.package.exiftool.name": "ExifTool (메타데이터)",
   "engines.package.exiftool.description": "사진, PDF, 동영상, 소리의 모든 메타데이터 항목을 읽고, 대부분의 파일 종류에서 파일 내용은 건드리지 않고 편집해요.\n메타데이터 도구가 사용해요. 없으면 항목을 읽기 전용으로 보여 줘요.",
   "engines.guidance.macos.exiftool": "Homebrew로 설치(brew install exiftool)한 뒤 “다시 확인”을 고르세요.\n또는 “내 사본 사용…”을 골라 그 폴더를 선택하세요.",
-  "engines.guidance.linux.exiftool": "패키지 관리자로 설치(Ubuntu/Debian: sudo apt install libimage-exiftool-perl)한 뒤 “다시 확인”을 고르세요."
+  "engines.guidance.linux.exiftool": "패키지 관리자로 설치(Ubuntu/Debian: sudo apt install libimage-exiftool-perl)한 뒤 “다시 확인”을 고르세요.",
+  "general.blob_music_display": "Blob에 Spotify / Amazon Music 트랙과 컨트롤 표시(로컬)",
+  "general.blob_music_lyrics": "LRCLIB 가사 표시(트랙, 아티스트, 앨범, 재생 시간을 전송)",
+  "companion.previous_track": "이전 트랙",
+  "companion.next_track": "다음 트랙"
 }
