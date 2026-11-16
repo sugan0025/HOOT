@@ -13,25 +13,21 @@ public sealed class BlobEnvironmentBehaviorTests
 {
 
     [AvaloniaFact]
-    public void Password_focus_holds_sunglasses_when_typing_pauses_and_setting_controls_only_glasses()
+    public void Password_focus_still_blocks_field_gaze_without_accessories_or_quips()
     {
         TestServices.EnsureInitialized();
         var window = new BlobCompanionWindow(AppHost.Get<RadialController>(), AppHost.Get<TriggerService>());
         try
         {
             var blob = window.FindControl<BlobatarControl>("Blob")!;
+            var thoughtBefore = window.FindControl<TextBlock>("ThoughtText")!.Text;
             window.SetFocusedInputContext(new FocusedInputContext(null, true));
             window.SetSystemIdleTime(TimeSpan.FromMinutes(1));
             Assert.True(blob.State.PrivacyFocus);
-            Assert.True(blob.State.PrivacyGlasses);
-
-            window.PrivacySunglassesEnabled = false;
-            Assert.True(blob.State.PrivacyFocus);
-            Assert.False(blob.State.PrivacyGlasses);
+            Assert.Equal(thoughtBefore, window.FindControl<TextBlock>("ThoughtText")!.Text);
 
             window.SetFocusedInputContext(new FocusedInputContext(new PlatformScreenBounds(10, 10, 120, 28), false));
             Assert.False(blob.State.PrivacyFocus);
-            Assert.False(blob.State.PrivacyGlasses);
         }
         finally { window.Close(); }
     }

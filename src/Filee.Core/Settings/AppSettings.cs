@@ -344,7 +344,8 @@ public sealed class BlobCompanionSettings
     /// <summary>Offer occasional stretch animations after extended active use. Off by default.</summary>
     public bool StretchReminderEnabled { get; set; }
     /// <summary>Show local Spotify / Amazon Music track information and previous/next controls on the desktop Blob.</summary>
-    public bool PrivacySunglassesEnabled { get; set; } = true;
+    // Retained only to round-trip older settings; the sunglasses effect was removed in 2.6.7.
+    public bool PrivacySunglassesEnabled { get; set; }
     public bool PowerReactionsEnabled { get; set; } = true;
     public bool WindowReactionsEnabled { get; set; } = true;
     public bool MusicDisplayEnabled { get; set; } = true;
