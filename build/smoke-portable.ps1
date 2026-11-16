@@ -1,7 +1,7 @@
 # Checks a portable package the way a user gets it: verifies the archive checksum, unpacks it and runs the CLI,
-# rhwp and 7-Zip from it, including conversions through rhwp (TXT -> HWPX -> HWP -> PDF). On Linux it also loads
-# the X11 input hook back end when it is a loose file. Single-file builds embed native libraries for extraction at
-# launch; the later desktop-app smoke check verifies that runtime loading path.
+# rhwp, Unhwp and 7-Zip from it, including conversions through Unhwp (HWPX -> TXT) and rhwp (TXT -> HWPX -> HWP -> PDF).
+# On Linux it also loads the X11 input hook back end when it is a loose file. Single-file builds embed native libraries
+# for extraction at launch; the desktop-app smoke check verifies that runtime loading path.
 # Used by .github/workflows/portable.yml on the build machine and on the oldest supported Ubuntu.
 #
 # In GitHub Actions it sets FILEE_SMOKE_APP (the desktop app, for build/smoke-launch-app.py) and FILEE_SMOKE_PACKAGE
@@ -58,6 +58,7 @@ function Convert-Smoke([string]$source, [string]$target) {
 $inputFile = Join-Path $smoke 'sample.txt'
 'Filee 한글 conversion smoke test' | Set-Content -LiteralPath $inputFile -Encoding utf8NoBOM
 $hwpx = Convert-Smoke $inputFile 'hwpx'
+Convert-Smoke $hwpx 'txt' | Out-Null # Exercises Unhwp through the published single-file CLI, including embedded native assets.
 # HWPX -> HWP and HWP -> PDF are rhwp's routes: they run the bundled rhwp from the package.
 $hwp = Convert-Smoke $hwpx 'hwp'
 $pdf = Convert-Smoke $hwp 'pdf'
@@ -74,10 +75,6 @@ if ($IsLinux) {
         }
     } else {
         Write-Host 'libuiohook-xrecord.so is embedded in the single-file app; its load is checked by the desktop-app smoke test.'
-    }
-    # Unhwp: from its package on x64, Filee's own build on ARM64 (build/build-native.py, -UnhwpOverride).
-    Invoke-Checked 'Load libunhwp.so' {
-        python3 -c 'import ctypes, sys; f = ctypes.CDLL(sys.argv[1]).unhwp_version; f.restype = ctypes.c_char_p; print("Loaded " + sys.argv[1] + ", unhwp " + f().decode())' (Join-Path $bin 'libunhwp.so')
     }
 }
 
