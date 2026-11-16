@@ -33,9 +33,9 @@ $smoke = (Resolve-Path -LiteralPath $WorkDir).Path
 Invoke-Checked 'Archive extraction' { tar -xzf $archive.FullName -C $smoke }
 $package = Join-Path $smoke ($archive.Name.Replace('.tar.gz', ''))
 if ($IsMacOS) {
-    Invoke-Checked 'Extracted app signature' { codesign --verify --deep --strict (Join-Path $package 'Filee.app') }
+    Invoke-Checked 'Extracted app signature' { codesign --verify --deep --strict (Join-Path $package 'HOOT.app') }
 }
-$bin = if ($IsMacOS) { Join-Path $package 'Filee.app/Contents/MacOS' } else { $package }
+$bin = if ($IsMacOS) { Join-Path $package 'HOOT.app/Contents/MacOS' } else { $package }
 $cli = Join-Path $bin 'filee-cli'
 
 Invoke-Checked 'CLI start' { & $cli version }
@@ -79,7 +79,7 @@ if ($IsLinux) {
 }
 
 if ($env:GITHUB_ENV) {
-    "FILEE_SMOKE_APP=$(Join-Path $bin 'Filee')" >> $env:GITHUB_ENV
+    "FILEE_SMOKE_APP=$(Join-Path $bin 'Hoot')" >> $env:GITHUB_ENV
     "FILEE_SMOKE_PACKAGE=$package" >> $env:GITHUB_ENV
 }
 Write-Host "Package checks passed: $package"
