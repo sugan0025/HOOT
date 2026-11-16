@@ -61,7 +61,6 @@
             <StackPanel Spacing="6">
               <ToggleSwitch Content="{DynamicResource general.blob_awareness}" IsChecked="{Binding AppAwarenessEnabled}" />
               <TextBlock Classes="caption" Text="{DynamicResource general.blob_awareness_hint}" TextWrapping="Wrap" />
-              <ToggleSwitch Content="Privacy sunglasses" IsChecked="{Binding PrivacySunglassesEnabled}" IsEnabled="{Binding AppAwarenessEnabled}" />
               <ToggleSwitch Content="Power and battery reactions" IsChecked="{Binding PowerReactionsEnabled}" IsEnabled="{Binding AppAwarenessEnabled}" />
               <ToggleSwitch Content="Window and monitor reactions" IsChecked="{Binding WindowReactionsEnabled}" IsEnabled="{Binding AppAwarenessEnabled}" />
               <WrapPanel IsEnabled="{Binding AppAwarenessAppsEnabled}">

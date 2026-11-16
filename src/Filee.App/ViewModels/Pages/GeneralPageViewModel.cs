@@ -49,7 +49,6 @@ public sealed partial class GeneralPageViewModel : ObservableObject, IDisposable
         _blobAudioEnabled = store.Settings.BlobCompanion.AudioEnabled;
         _cinemaDimEnabled = store.Settings.BlobCompanion.CinemaDimEnabled;
         _stretchReminderEnabled = store.Settings.BlobCompanion.StretchReminderEnabled;
-        _privacySunglassesEnabled = store.Settings.BlobCompanion.PrivacySunglassesEnabled;
         _powerReactionsEnabled = store.Settings.BlobCompanion.PowerReactionsEnabled;
         _windowReactionsEnabled = store.Settings.BlobCompanion.WindowReactionsEnabled;
         _musicDisplayEnabled = store.Settings.BlobCompanion.MusicDisplayEnabled;
@@ -178,7 +177,6 @@ public sealed partial class GeneralPageViewModel : ObservableObject, IDisposable
         Blob3DEnabled = _store.Settings.BlobCompanion.Use3DRenderer;
         CinemaDimEnabled = _store.Settings.BlobCompanion.CinemaDimEnabled;
         StretchReminderEnabled = _store.Settings.BlobCompanion.StretchReminderEnabled;
-        PrivacySunglassesEnabled = _store.Settings.BlobCompanion.PrivacySunglassesEnabled;
         PowerReactionsEnabled = _store.Settings.BlobCompanion.PowerReactionsEnabled;
         WindowReactionsEnabled = _store.Settings.BlobCompanion.WindowReactionsEnabled;
         MusicDisplayEnabled = _store.Settings.BlobCompanion.MusicDisplayEnabled;
@@ -312,11 +310,6 @@ public sealed partial class GeneralPageViewModel : ObservableObject, IDisposable
     partial void OnMusicLyricsEnabledChanged(bool value)
     {
         if (!_restoringBlobCompanion) Save(s => s.BlobCompanion.MusicLyricsEnabled = value);
-    }
-    [ObservableProperty] private bool _privacySunglassesEnabled;
-    partial void OnPrivacySunglassesEnabledChanged(bool value)
-    {
-        if (!_restoringBlobCompanion) Save(s => s.BlobCompanion.PrivacySunglassesEnabled = value);
     }
     [ObservableProperty] private bool _powerReactionsEnabled;
     partial void OnPowerReactionsEnabledChanged(bool value)

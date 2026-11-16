@@ -87,14 +87,6 @@ public partial class BlobCompanionWindow : Window
     private readonly Stopwatch _conversionClock = new();
     private PlatformScreenBounds? _focusedInputBounds;
     private bool _passwordFocused;
-    private DateTime _lastPrivacyQuip;
-    private int _privacyQuipIndex;
-    private bool _privacySunglassesEnabled = true;
-    public bool PrivacySunglassesEnabled
-    {
-        get => _privacySunglassesEnabled;
-        set { _privacySunglassesEnabled = value; Blob.SetPrivacy(_passwordFocused, _passwordFocused && value); }
-    }
     private DateTime _lastEnvironmentQuip, _environmentUntil, _lastInspection;
     private Point? _environmentGaze;
     private PixelRect? _dragStartMonitor;
@@ -939,20 +931,10 @@ public partial class BlobCompanionWindow : Window
 
     public void SetFocusedInputContext(FocusedInputContext? context)
     {
-        var entering = context?.IsPassword == true && !_passwordFocused;
         _passwordFocused = context?.IsPassword == true;
-        Blob.SetPrivacy(_passwordFocused, _passwordFocused && PrivacySunglassesEnabled);
+        // Keep password-field gaze protection without accessories or password quips.
+        Blob.SetPrivacy(_passwordFocused);
         SetFocusedInputBounds(_passwordFocused ? null : context?.Bounds);
-        if (entering && PrivacySunglassesEnabled && DateTime.UtcNow - _lastPrivacyQuip >= TimeSpan.FromMinutes(10)
-            && DateTime.UtcNow - _lastEnvironmentQuip >= TimeSpan.FromSeconds(45))
-        {
-            string[] quips = ["My shades are on. Your secrets stay yours.", "Password time? Looking respectfully elsewhere.", "Suddenly, this corner looks fascinating."];
-            if (ShowAppReaction(quips[_privacyQuipIndex % quips.Length], "privacy"))
-            {
-                _lastPrivacyQuip = _lastEnvironmentQuip = DateTime.UtcNow;
-                _privacyQuipIndex++;
-            }
-        }
     }
 
     public void SetFocusedInputBounds(PlatformScreenBounds? bounds)

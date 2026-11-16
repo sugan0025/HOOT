@@ -109,7 +109,6 @@ public sealed class BlobCompanionService(UserDataStore store, RadialController r
             _window.StretchReminderEnabled = store.Settings.BlobCompanion.StretchReminderEnabled;
             _window.AwarenessEnabled = store.Settings.BlobCompanion.AppAwareness.Enabled;
             _window.WindowReactionsEnabled = store.Settings.BlobCompanion.AppAwareness.Enabled && store.Settings.BlobCompanion.WindowReactionsEnabled;
-            _window.PrivacySunglassesEnabled = store.Settings.BlobCompanion.PrivacySunglassesEnabled;
             _window.MusicDisplayEnabled = store.Settings.BlobCompanion.MusicDisplayEnabled;
             _window.MusicLyricsEnabled = store.Settings.BlobCompanion.MusicLyricsEnabled;
             _window.MusicTrackCommandRequested = platform.SkipMusicTrackAsync;
@@ -179,7 +178,6 @@ public sealed class BlobCompanionService(UserDataStore store, RadialController r
                 StretchReminderEnabled = settings.StretchReminderEnabled,
                 AwarenessEnabled = settings.AppAwareness.Enabled,
                 WindowReactionsEnabled = settings.AppAwareness.Enabled && settings.WindowReactionsEnabled,
-                PrivacySunglassesEnabled = settings.PrivacySunglassesEnabled,
                 MusicDisplayEnabled = settings.MusicDisplayEnabled,
                 MusicLyricsEnabled = settings.MusicLyricsEnabled,
                 MusicTrackCommandRequested = platform.SkipMusicTrackAsync,

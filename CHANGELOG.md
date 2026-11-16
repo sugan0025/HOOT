@@ -14,6 +14,17 @@ change, a language may repeat; a language without lines shows the English ones):
 - `recommended`: bug fixes. The card shows once per version.
 - `optional`: new features only. No card, the sidebar button only.
 
+## 2.6.7
+
+<!-- update
+level: recommended
+en: Removed the desktop Blob sunglasses effect and its password quips; password fields remain excluded from typing gaze.
+-->
+
+- Removed the desktop companion's sunglasses animation, accessory rendering, and General Settings toggle.
+- Removed password-entry quips. Password fields remain excluded from typing gaze, with no field contents read.
+- Existing settings remain compatible. Experimental 3D Blob work is not included.
+
 ## 2.6.6
 
 <!-- update
