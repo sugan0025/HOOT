@@ -250,4 +250,100 @@ public class ImageToolTests(EngineFixture fx) : IClassFixture<EngineFixture>
         using var pdf = PdfSharp.Pdf.IO.PdfReader.Open(job.Outputs.Single(), PdfSharp.Pdf.IO.PdfDocumentOpenMode.Import);
         Assert.True(pdf.Pages[0].Height.Point > pdf.Pages[0].Width.Point); // landscape image, portrait page
     }
+
+    [Theory]
+    [InlineData(400, 200, PdfPageSize.A4, true)]
+    [InlineData(200, 400, PdfPageSize.A4, false)]
+    [InlineData(400, 200, PdfPageSize.FitImage, true)]
+    [InlineData(200, 400, PdfPageSize.FitImage, false)]
+    public async Task Image_to_PDF_keeps_landscape_and_portrait_images_aligned(int width, int height, PdfPageSize pageSize, bool landscape)
+    {
+        var source = Path.Combine(fx.NewFolder(), "alignment.png");
+        using (var image = new MagickImage(MagickColors.Lime, (uint)width, (uint)height))
+            image.Write(source, MagickFormat.Png);
+
+        var job = await fx.ConvertAsync([source], new Preset
+        {
+            TargetFormat = "pdf",
+            Pdf = { PageSize = pageSize, MarginMm = 0 }
+        });
+
+        Assert.Equal(JobState.Completed, job.State);
+        var pdfPath = Assert.Single(job.Outputs);
+        var preview = Filee.Engines.Pdf.PdfPageTools.Preview(pdfPath, maxDimension: 1200);
+        using var rendered = new MagickImage(preview.Png);
+        var (left, top, right, bottom) = GreenBounds(rendered);
+        var pageWidth = (int)rendered.Width;
+        var pageHeight = (int)rendered.Height;
+
+        Assert.Equal(landscape, pageWidth > pageHeight);
+        if (pageSize == PdfPageSize.FitImage)
+        {
+            Assert.InRange(Math.Abs(left), 0, 2);
+            Assert.InRange(Math.Abs(top), 0, 2);
+            Assert.InRange(Math.Abs(pageWidth - 1 - right), 0, 2);
+            Assert.InRange(Math.Abs(pageHeight - 1 - bottom), 0, 2);
+            return;
+        }
+        if (landscape)
+        {
+            Assert.InRange(Math.Abs(left), 0, 2);
+            Assert.InRange(Math.Abs(pageWidth - 1 - right), 0, 2);
+            Assert.InRange(Math.Abs(top - (pageHeight - 1 - bottom)), 0, 2);
+            Assert.True(top > 0 && bottom < pageHeight - 1, "Landscape image should be centered with balanced top and bottom margins.");
+        }
+        else
+        {
+            Assert.InRange(Math.Abs(top), 0, 2);
+            Assert.InRange(Math.Abs(pageHeight - 1 - bottom), 0, 2);
+            Assert.InRange(Math.Abs(left - (pageWidth - 1 - right)), 0, 2);
+            Assert.True(left > 0 && right < pageWidth - 1, "Portrait image should be centered with balanced left and right margins.");
+        }
+    }
+
+    [Theory]
+    [InlineData(100, 200, null, 288, 72)]
+    [InlineData(96, 96, 150, 192, 96)]
+    public async Task Image_to_FitImage_PDF_uses_the_final_horizontal_and_vertical_DPI(int dpiX, int dpiY, int? outputDpi, double expectedWidthPt, double expectedHeightPt)
+    {
+        var source = Path.Combine(fx.NewFolder(), "density.png");
+        using (var image = new MagickImage(MagickColors.Lime, 400, 200)
+               { Density = new Density(dpiX, dpiY, DensityUnit.PixelsPerInch) })
+            image.Write(source, MagickFormat.Png);
+
+        var job = await fx.ConvertAsync([source], new Preset
+        {
+            TargetFormat = "pdf",
+            Image = { Dpi = outputDpi },
+            Pdf = { PageSize = PdfPageSize.FitImage }
+        });
+
+        Assert.Equal(JobState.Completed, job.State);
+        using var pdf = PdfSharp.Pdf.IO.PdfReader.Open(Assert.Single(job.Outputs), PdfSharp.Pdf.IO.PdfDocumentOpenMode.Import);
+        Assert.InRange(Math.Abs(pdf.Pages[0].Width.Point - expectedWidthPt), 0, 1);
+        Assert.InRange(Math.Abs(pdf.Pages[0].Height.Point - expectedHeightPt), 0, 1);
+    }
+
+    private static (int Left, int Top, int Right, int Bottom) GreenBounds(IMagickImage<byte> image)
+    {
+        var left = (int)image.Width;
+        var top = (int)image.Height;
+        var right = -1;
+        var bottom = -1;
+        var pixels = image.GetPixels();
+        for (var y = 0; y < (int)image.Height; y++)
+        for (var x = 0; x < (int)image.Width; x++)
+        {
+            var color = pixels.GetPixel(x, y).ToColor();
+            if (color is not { G: > 150 } || color.R > 100 || color.B > 100)
+                continue;
+            left = Math.Min(left, x);
+            top = Math.Min(top, y);
+            right = Math.Max(right, x);
+            bottom = Math.Max(bottom, y);
+        }
+
+        Assert.True(right >= left && bottom >= top, "Rendered PDF contains no detectable source-image pixels.");
+        return (left, top, right, bottom);
+    }
 }

@@ -35,6 +35,8 @@ internal sealed partial class DocxReader
     private readonly Dictionary<string, XElement> _footnotes = [];
     private readonly Dictionary<string, XElement> _endnotes = [];
     private readonly List<FieldState> _fields = [];
+    private IReadOnlyList<XElement>? _tableStyleParagraphLayers;
+    private IReadOnlyList<XElement>? _tableStyleRunLayers;
     private Part? _footnotesPart;
     private Part? _endnotesPart;
     private bool _evenAndOddHeaders;

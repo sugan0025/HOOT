@@ -11,16 +11,48 @@ public sealed class BlobCompanionBehaviorTests
     public void Optional_platform_behaviors_default_off()
     {
         var settings = new BlobCompanionSettings();
+        Assert.False(settings.Use3DRenderer);
         Assert.False(settings.CinemaDimEnabled);
         Assert.False(settings.StretchReminderEnabled);
 
         var appSettings = new AppSettings();
         appSettings.BlobCompanion.CinemaDimEnabled = true;
         appSettings.BlobCompanion.StretchReminderEnabled = true;
+        appSettings.BlobCompanion.Use3DRenderer = true;
         var restored = System.Text.Json.JsonSerializer.Deserialize<AppSettings>(
             System.Text.Json.JsonSerializer.Serialize(appSettings))!;
         Assert.True(restored.BlobCompanion.CinemaDimEnabled);
         Assert.True(restored.BlobCompanion.StretchReminderEnabled);
+        Assert.True(restored.BlobCompanion.Use3DRenderer);
+    }
+
+    [Fact]
+    public void Three_d_turn_timeline_is_eased_and_returns_to_front()
+    {
+        Assert.Equal(0, Blob3DCompanionTimelines.TurnAngle(-1), 6);
+        Assert.InRange(Blob3DCompanionTimelines.TurnAngle(.5), Math.PI - .01, Math.PI + .01);
+        Assert.Equal(Math.Tau, Blob3DCompanionTimelines.TurnAngle(1), 6);
+        Assert.Equal(Math.Tau, Blob3DCompanionTimelines.TurnAngle(2), 6);
+    }
+
+    [Fact]
+    public void Three_d_travel_hop_stays_inside_monitor_work_area()
+    {
+        var workArea = new Avalonia.PixelRect(0, 0, 1920, 1080);
+        var point = Blob3DCompanionTimelines.TravelHopPosition(new Avalonia.PixelPoint(1800, 1000),
+            new Avalonia.PixelPoint(1950, 1050), workArea, 104, 104, 1, .5);
+        Assert.InRange(point.X, workArea.X, workArea.Right - 104);
+        Assert.InRange(point.Y, workArea.Y, workArea.Bottom - 104);
+    }
+
+    [Fact]
+    public void Three_d_travel_hop_reverses_when_preferred_direction_is_blocked_by_screen_edge()
+    {
+        var workArea = new Avalonia.PixelRect(0, 0, 1920, 1080);
+        var from = new Avalonia.PixelPoint(1816, 400);
+        var destination = Blob3DCompanionTimelines.TravelHopDestination(from, 92, 0, workArea, 104, 104);
+        Assert.Equal(1724, destination.X);
+        Assert.Equal(from.Y, destination.Y);
     }
 
     [Theory]

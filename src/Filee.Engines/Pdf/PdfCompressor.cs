@@ -236,8 +236,17 @@ internal static class PdfCompressor
             return null;
         var width = elements.GetInteger("/Width");
         var height = elements.GetInteger("/Height");
-        var components = Components(Resolve(elements["/ColorSpace"]));
+        var colorSpace = Resolve(elements["/ColorSpace"]);
+        // Re-encoding calibrated and ICC-based samples requires applying their color transform to the decoded
+        // pixels. Keep those images byte-for-byte intact rather than preserving a transform over altered samples.
+        if (!IsDeviceColorSpace(colorSpace))
+            return null;
+        var components = Components(colorSpace);
         if (width <= 0 || height <= 0 || components == 0 || (long)width * height > 100_000_000)
+            return null;
+        // A /Decode array can invert or remap sample values. ImageMagick reads raw components without that PDF-level
+        // mapping, so only the implicit default (or an explicit identity mapping) is safe to re-encode.
+        if (!HasIdentityDecode(image, components))
             return null;
 
         var filters = Filters(image);
@@ -395,6 +404,24 @@ internal static class PdfCompressor
         },
         _ => 0,
     };
+
+    internal static bool IsDeviceColorSpace(PdfItem? colorSpace) => colorSpace is PdfName
+    {
+        Value: "/DeviceGray" or "/DeviceRGB" or "/DeviceCMYK",
+    };
+
+    internal static bool HasIdentityDecode(PdfDictionary image, int components)
+    {
+        var elements = image.Elements;
+        if (!elements.ContainsKey("/Decode"))
+            return true;
+        if (Resolve(elements["/Decode"]) is not PdfArray decode || decode.Elements.Count != components * 2)
+            return false;
+        for (var i = 0; i < decode.Elements.Count; i += 2)
+            if (decode.Elements.GetReal(i) != 0 || decode.Elements.GetReal(i + 1) != 1)
+                return false;
+        return true;
+    }
 
     /// <summary>The object a reference points to; a name stored as an object of its own (ImageMagick does) as a name.</summary>
     internal static PdfItem? Resolve(PdfItem? item) => item is PdfReference reference

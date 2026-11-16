@@ -52,6 +52,11 @@ public partial class PdfPageEditorWindow : Window
     {
         InitializeComponent();
         Motion.Track(this);
+        PageMarkCanvas.TextRequested += (_, request) =>
+        {
+            if (DataContext is PdfPageEditorViewModel vm)
+                vm.PlaceText(request);
+        };
         _scrollTimer = new DispatcherTimer(TimeSpan.FromMilliseconds(30), DispatcherPriority.Input, (_, _) => ScrollWhileDragging());
         // Tunnelled: the list selects the page on its own press handler, which would break up the selection.
         PageOrder.AddHandler(PointerPressedEvent, OnPagePressing, RoutingStrategies.Tunnel);

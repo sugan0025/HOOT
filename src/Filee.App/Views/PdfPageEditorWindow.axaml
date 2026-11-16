@@ -2,6 +2,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:Filee.App.ViewModels"
+        xmlns:c="using:Filee.App.Controls"
         x:Class="Filee.App.Views.PdfPageEditorWindow"
         x:DataType="vm:PdfPageEditorViewModel"
         Title="{DynamicResource pdf_editor.title}"
@@ -72,6 +73,22 @@
         </Button>
         <Button Margin="0,0,6,6" Click="OnExtract" IsEnabled="{Binding HasSelection}"
                 Content="{DynamicResource preset.pdf_extract.short}" />
+        <Border Width="1" Height="28" Margin="4,0,10,6" VerticalAlignment="Center"
+                Background="{DynamicResource SubtleBorderBrush}" />
+        <RadioButton Margin="0,0,6,6" GroupName="PdfMarkTool" IsChecked="{Binding IsPenTool, Mode=OneWay}"
+                     Command="{Binding SetEditToolCommand}" CommandParameter="{x:Static c:AnnotateMode.Pen}"
+                     Content="{DynamicResource annotate.pen}" />
+        <RadioButton Margin="0,0,6,6" GroupName="PdfMarkTool" IsChecked="{Binding IsHighlightTool, Mode=OneWay}"
+                     Command="{Binding SetEditToolCommand}" CommandParameter="{x:Static c:AnnotateMode.Highlight}"
+                     Content="{DynamicResource annotate.highlight}" />
+        <RadioButton Margin="0,0,6,6" GroupName="PdfMarkTool" IsChecked="{Binding IsTextTool, Mode=OneWay}"
+                     Command="{Binding SetEditToolCommand}" CommandParameter="{x:Static c:AnnotateMode.Text}"
+                     Content="{DynamicResource annotate.text}" />
+        <TextBox Margin="0,0,6,6" Width="150" Text="{Binding EditText}" PlaceholderText="{DynamicResource annotate.text}"
+                 AutomationProperties.Name="{DynamicResource annotate.text}" />
+        <ComboBox Margin="0,0,6,6" Width="100" ItemsSource="{Binding EditColors}" SelectedItem="{Binding EditColor}"
+                  AutomationProperties.Name="{DynamicResource background.color}" />
+        <ComboBox Margin="0,0,6,6" Width="100" ItemsSource="{Binding EditWidths}" SelectedItem="{Binding EditWidth}" />
       </WrapPanel>
     </StackPanel>
 
@@ -138,12 +155,15 @@
             <TextBlock Text="{DynamicResource pdf_editor.loading}" Classes="caption"
                        HorizontalAlignment="Center" VerticalAlignment="Center"
                        IsVisible="{Binding IsPreviewLoading}" />
-            <Image Source="{Binding SelectedPreview}" Stretch="Uniform" Margin="20"
-                   RenderTransformOrigin="50%,50%" IsVisible="{Binding HasSelectedPreview}">
-              <Image.RenderTransform>
+            <c:AnnotationCanvas x:Name="PageMarkCanvas" SourceImage="{Binding SelectedPreview}"
+                                Marks="{Binding SelectedMarks}" Tool="{Binding EditTool}"
+                                MarkColor="{Binding EditColor}" MarkWidth="{Binding EditWidth}"
+                                ImagePadding="20" AccentBrush="{DynamicResource AccentBrush}"
+                                IsVisible="{Binding HasSelectedPreview}" RenderTransformOrigin="50%,50%">
+              <c:AnnotationCanvas.RenderTransform>
                 <RotateTransform Angle="{Binding SelectedPreviewRotation}" />
-              </Image.RenderTransform>
-            </Image>
+              </c:AnnotationCanvas.RenderTransform>
+            </c:AnnotationCanvas>
           </Grid>
         </Grid>
       </Border>

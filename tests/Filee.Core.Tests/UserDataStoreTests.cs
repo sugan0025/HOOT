@@ -46,8 +46,8 @@ public partial class UserDataStoreTests
         var store = new UserDataStore(dir.Path);
         store.Load();
 
-        Assert.Equal(81, AppSettings.CurrentSchemaVersion);
-        Assert.Equal(81, store.Settings.SchemaVersion);
+        Assert.Equal(82, AppSettings.CurrentSchemaVersion);
+        Assert.Equal(82, store.Settings.SchemaVersion);
         Assert.Equal("ja", store.Settings.Language);
         Assert.False(store.Settings.StartWithSystem);
         Assert.True(store.Settings.Paused);
@@ -59,7 +59,7 @@ public partial class UserDataStoreTests
         Assert.True(store.Settings.BlobCompanion.AppAwareness.Enabled);
 
         var saved = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(Path.Combine(dir.Path, "settings.json")))!;
-        Assert.Equal(81, (int)saved["schemaVersion"]!);
+        Assert.Equal(82, (int)saved["schemaVersion"]!);
         Assert.Equal("ja", (string)saved["language"]!);
         Assert.True((bool)saved["paused"]!);
         Assert.True((bool)saved["blobCompanion"]!["isVisible"]!);
@@ -89,6 +89,25 @@ public partial class UserDataStoreTests
     }
 
     [Fact]
+    public void Schema_81_adds_3d_companion_preference_with_original_2d_default()
+    {
+        using var dir = new TempDir();
+        File.WriteAllText(Path.Combine(dir.Path, "settings.json"),
+            """{"schemaVersion":81,"blobCompanion":{"isVisible":true}}""");
+
+        var store = new UserDataStore(dir.Path);
+        store.Load();
+
+        Assert.Equal(82, store.Settings.SchemaVersion);
+        Assert.False(store.Settings.BlobCompanion.Use3DRenderer);
+        store.Settings.BlobCompanion.Use3DRenderer = true;
+        store.SaveSettings();
+        var reloaded = new UserDataStore(dir.Path);
+        reloaded.Load();
+        Assert.True(reloaded.Settings.BlobCompanion.Use3DRenderer);
+    }
+
+    [Fact]
     public void Schema_79_adds_hoot_quip_rule_without_replacing_existing_app_rules()
     {
         using var dir = new TempDir();
@@ -109,7 +128,7 @@ public partial class UserDataStoreTests
         var store = new UserDataStore(dir.Path);
         store.Load();
 
-        Assert.Equal(81, store.Settings.SchemaVersion);
+        Assert.Equal(82, store.Settings.SchemaVersion);
         Assert.Contains("claude", store.Settings.BlobCompanion.AppAwareness.EnabledApps);
         Assert.Contains("chatgpt", store.Settings.BlobCompanion.AppAwareness.EnabledApps);
         Assert.Contains("hoot", store.Settings.BlobCompanion.AppAwareness.EnabledApps);

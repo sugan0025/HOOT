@@ -40,6 +40,7 @@ public partial class BlobCompanionWindow : Window
     private CancellationTokenSource? _wakeCancellation;
     private CancellationTokenSource? _dropAnimationCancellation;
     private CancellationTokenSource? _desktopHopCancellation;
+    private CancellationTokenSource? _threeDAnimationCancellation;
     private CancellationTokenSource? _cinemaCancellation;
     private readonly Random _random = new();
     private readonly BlobDragYankDetector _yankDetector = new();
@@ -109,6 +110,7 @@ public partial class BlobCompanionWindow : Window
     private int _rapidClicks;
     private DateTime _lastClickAt;
     private BlobCompanionActivity _activity = BlobCompanionActivity.Adaptive;
+    private bool _use3DRenderer;
     private bool _playHatchOnNextShow;
     private int _lastBehavior = -1;
     private int _dragSequence;
@@ -170,6 +172,7 @@ public partial class BlobCompanionWindow : Window
         {
             _lifetime.Cancel();
             _desktopHopCancellation?.Cancel();
+            _threeDAnimationCancellation?.Cancel();
             _cinemaCancellation?.Cancel();
             _thoughtCancellation.Cancel();
             _thoughtCancellation.Dispose();
@@ -218,6 +221,22 @@ public partial class BlobCompanionWindow : Window
         }
     }
     public bool CompanionAudioEnabled { get => Blob.AudioEnabled; set => Blob.AudioEnabled = value; }
+    public bool Use3DRenderer
+    {
+        get => _use3DRenderer;
+        set
+        {
+            _use3DRenderer = value;
+            Blob.Use3DRenderer = value;
+            if (!value) Blob.SetMeshSpin(0);
+            Blob.InvalidateVisual();
+            if (!value)
+            {
+                CancelDesktopHop();
+                CancelThreeDAnimation();
+            }
+        }
+    }
     public Func<bool>? IsCompanionEnabled { get; set; }
     public bool PlayHatchOnNextShow { get => _playHatchOnNextShow; set => _playHatchOnNextShow = value; }
 
@@ -237,6 +256,7 @@ public partial class BlobCompanionWindow : Window
                 CancelWakeRitual();
                 CancelThoughtForPriority();
                 CancelDesktopHop();
+                CancelThreeDAnimation();
                 Blob.NotifyDragOver(false);
                 Blob.SetCurious(false);
                 Blob.SetMouthOpen(0);
@@ -1024,6 +1044,7 @@ public partial class BlobCompanionWindow : Window
             Blob.State.SuppressAutonomousWinks = false;
             VisibilityChanged?.Invoke(false);
             CancelDesktopHop();
+            CancelThreeDAnimation();
             if (_dropPending) _dropAnimationCancellation?.Cancel();
             _thoughtCancellation.Cancel();
             _thoughtCancellation.Dispose();
@@ -1154,6 +1175,7 @@ public partial class BlobCompanionWindow : Window
                 _hugTimer.Stop();
                 _hugCompleted = false;
                 CancelDesktopHop();
+                CancelThreeDAnimation();
                 ThoughtPopup.IsOpen = false;
                 Blob.SetCurious(false);
                 Blob.SetMouthOpen(0);
@@ -1409,8 +1431,17 @@ public partial class BlobCompanionWindow : Window
         }
     }
 
-    public void SetGestureActive(bool active) => GestureActive = active;
-    public void WaitForWheelClose() => _wheelTimer.Start();
+    public void SetGestureActive(bool active)
+    {
+        GestureActive = active;
+        if (active) { CancelDesktopHop(); CancelThreeDAnimation(); }
+    }
+    public void WaitForWheelClose()
+    {
+        CancelDesktopHop();
+        CancelThreeDAnimation();
+        _wheelTimer.Start();
+    }
 
     public void CancelDropForGesturePriority()
     {
@@ -1470,6 +1501,7 @@ public partial class BlobCompanionWindow : Window
         _dragOver = true;
         RefreshMusicCard();
         CancelDesktopHop();
+        CancelThreeDAnimation();
         _dragSequence++;
         _fileDragSince = DateTime.UtcNow;
         _licked = false;
@@ -1771,12 +1803,18 @@ public partial class BlobCompanionWindow : Window
         _lastBehavior = behavior;
         switch (behavior)
         {
-            case 0: _ = PerformDesktopHopAsync(); break;
+            case 0:
+                if (_use3DRenderer) _ = PerformThreeDTravelHopAsync();
+                else _ = PerformDesktopHopAsync();
+                break;
             case 1: Blob.TriggerStretch(); break;
             case 2: _ = YawnAsync(); break;
             case 3: Blob.State.TriggerTiltWobble(3.0); break;
             case 4: Blob.State.TriggerBlink(2); Blob.State.TriggerTiltWobble(2); break;
-            case 5: Blob.State.LookAt(new Point(_random.Next(-35, 36), _random.Next(-20, 21))); break;
+            case 5:
+                if (_use3DRenderer) _ = PerformThreeDTurnAsync();
+                else Blob.State.LookAt(new Point(_random.Next(-35, 36), _random.Next(-20, 21)));
+                break;
             case 6: _ = ShowCompanionGlyphAsync("○"); break;
             default: _ = HiccupAsync(); break;
         }
@@ -1852,6 +1890,98 @@ public partial class BlobCompanionWindow : Window
         if (IsVisible && !_moving && _desktopHopOrigin is { } origin)
             Position = origin;
         Blob.CancelBoredHop();
+    }
+
+    private async Task PerformThreeDTurnAsync()
+    {
+        if (!_use3DRenderer || !CanRunThreeDIdleAnimation()) return;
+        CancelThreeDAnimation();
+        var cancellation = CancellationTokenSource.CreateLinkedTokenSource(_lifetime.Token);
+        _threeDAnimationCancellation = cancellation;
+        _autonomousActive = true;
+        var started = Stopwatch.GetTimestamp();
+        try
+        {
+            while (true)
+            {
+                cancellation.Token.ThrowIfCancellationRequested();
+                if (!CanRunThreeDIdleAnimation()) return;
+                var progress = Math.Clamp(Stopwatch.GetElapsedTime(started).TotalSeconds / Blob3DCompanionTimelines.TurnDurationSeconds, 0, 1);
+                Blob.SetMeshSpin(Blob3DCompanionTimelines.TurnAngle(progress));
+                Blob.InvalidateVisual();
+                if (progress >= 1) break;
+                await Task.Delay(16, cancellation.Token);
+            }
+        }
+        catch (OperationCanceledException) { }
+        finally
+        {
+            Blob.SetMeshSpin(0);
+            Blob.InvalidateVisual();
+            if (ReferenceEquals(_threeDAnimationCancellation, cancellation)) _threeDAnimationCancellation = null;
+            cancellation.Dispose();
+            _autonomousActive = false;
+        }
+    }
+
+    private async Task PerformThreeDTravelHopAsync()
+    {
+        if (!_use3DRenderer || !CanRunThreeDIdleAnimation()) return;
+        CancelDesktopHop();
+        var cancellation = CancellationTokenSource.CreateLinkedTokenSource(_lifetime.Token);
+        _desktopHopCancellation = cancellation;
+        var origin = Position;
+        _desktopHopOrigin = origin;
+        var screen = Screens.ScreenFromPoint(origin) ?? Screens.Primary;
+        var area = screen?.WorkingArea ?? new PixelRect(origin.X, origin.Y, 800, 600);
+        var scale = Math.Max(1, RenderScaling);
+        var direction = _random.Next(2) == 0 ? -1 : 1;
+        var dx = Math.Max(32, (int)Math.Round(92 * scale)) * direction;
+        var dy = (int)Math.Round(_random.Next(-36, 37) * scale);
+        var destination = Blob3DCompanionTimelines.TravelHopDestination(origin, dx, dy, area,
+            (int)Math.Ceiling(Bounds.Width * scale), (int)Math.Ceiling(Bounds.Height * scale));
+        _autonomousActive = true;
+        try
+        {
+            Blob.TriggerBoredHop();
+            await MoveThreeDHopLegAsync(origin, destination, area, scale, cancellation.Token);
+            await Task.Delay(Blob3DCompanionTimelines.TravelPauseMilliseconds, cancellation.Token);
+            await MoveThreeDHopLegAsync(destination, origin, area, scale, cancellation.Token);
+        }
+        catch (OperationCanceledException) { }
+        finally
+        {
+            if (IsVisible && !_moving) Position = origin;
+            _desktopHopOrigin = null;
+            if (ReferenceEquals(_desktopHopCancellation, cancellation)) _desktopHopCancellation = null;
+            cancellation.Dispose();
+            Blob.CancelBoredHop();
+            _autonomousActive = false;
+        }
+    }
+
+    private async Task MoveThreeDHopLegAsync(PixelPoint from, PixelPoint to, PixelRect area, double scale,
+        CancellationToken cancellationToken)
+    {
+        for (var frame = 1; frame <= Blob3DCompanionTimelines.TravelHopFrames; frame++)
+        {
+            await Task.Delay(Blob3DCompanionTimelines.FrameIntervalMilliseconds, cancellationToken);
+            if (!CanRunThreeDIdleAnimation()) return;
+            var progress = frame / (double)Blob3DCompanionTimelines.TravelHopFrames;
+            Position = Blob3DCompanionTimelines.TravelHopPosition(from, to, area,
+                (int)Math.Ceiling(Bounds.Width * scale), (int)Math.Ceiling(Bounds.Height * scale), scale, progress);
+        }
+    }
+
+    private bool CanRunThreeDIdleAnimation() => _use3DRenderer && IsVisible && !_paused && !_napping
+        && !_dragOver && !_dropPending && !_moving && !_pressed && !_gestureActive && !_conversionActive
+        && !_thoughtShowing && !_cinemaDimActive && !_radial.IsVisible && Motion.Enabled;
+
+    private void CancelThreeDAnimation()
+    {
+        _threeDAnimationCancellation?.Cancel();
+        Blob.SetMeshSpin(0);
+        Blob.InvalidateVisual();
     }
 
     private void ResetIdleTimer()

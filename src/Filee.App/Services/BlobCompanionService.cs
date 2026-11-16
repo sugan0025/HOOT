@@ -103,6 +103,7 @@ public sealed class BlobCompanionService(UserDataStore store, RadialController r
             _window?.WaitForWheelClose();
         if (_window is not null)
         {
+            _window.Use3DRenderer = store.Settings.BlobCompanion.Use3DRenderer;
             _window.Activity = store.Settings.BlobCompanion.Activity;
             _window.CompanionAudioEnabled = store.Settings.BlobCompanion.AudioEnabled;
             _window.StretchReminderEnabled = store.Settings.BlobCompanion.StretchReminderEnabled;
@@ -170,6 +171,7 @@ public sealed class BlobCompanionService(UserDataStore store, RadialController r
             var settings = store.Settings.BlobCompanion;
             _window = new BlobCompanionWindow(radial, triggers)
             {
+                Use3DRenderer = settings.Use3DRenderer,
                 IsPaused = store.Settings.Paused,
                 GestureActive = _gestureActive,
                 Activity = settings.Activity,

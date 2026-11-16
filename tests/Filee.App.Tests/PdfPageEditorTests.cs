@@ -4,11 +4,13 @@ using Avalonia.Headless.XUnit;
 using Avalonia.Input;
 using Avalonia.Threading;
 using Filee.App.Services;
+using Filee.App.Controls;
 using Filee.App.ViewModels;
 using Filee.App.Views;
 using Filee.Core.Localization;
 using Filee.Core.Presets;
 using Filee.Core.Settings;
+using Filee.Engines.Pdf;
 using PdfSharp.Drawing;
 using PdfSharp.Pdf;
 using PdfSharp.Pdf.IO;
@@ -38,6 +40,57 @@ public class PdfPageEditorTests
         }
         document.Save(path);
         return path;
+    }
+
+    [AvaloniaFact]
+    public async Task Editor_adds_vector_text_and_highlights_without_changing_source_pdf()
+    {
+        TestServices.EnsureInitialized("en");
+        var folder = Directory.CreateTempSubdirectory("filee-pdf-vector-edits-").FullName;
+        try
+        {
+            var source = MakePdf(folder, "source.pdf", (612, 0));
+            var originalBytes = File.ReadAllBytes(source);
+            var store = new UserDataStore(Path.Combine(folder, "data"));
+            store.Load();
+            var preset = BuiltInData.CreatePresets().Single(p => p.Id == "tool-pdf-pages");
+            preset.Output.Location = OutputLocation.CustomFolder;
+            preset.Output.CustomFolder = folder;
+            using var vm = new PdfPageEditorViewModel([source], preset, AppHost.Get<ILocalizer>(), store);
+            await vm.LoadThumbnailsAsync();
+
+            vm.EditText = "Vector PDF label";
+            vm.EditColor = "#2266CC";
+            vm.PlaceText(new AnnotationCanvas.TextRequest(-1,
+                new AnnotationPoint { X = .2, Y = .25 }, new Rect(0, 0, 80, 20), 12));
+            Assert.Single(vm.SelectedMarks!.Marks);
+            Assert.Equal(AnnotationKind.Text, vm.SelectedMarks.Marks[0].Kind);
+
+            vm.SetEditToolCommand.Execute(AnnotateMode.Highlight);
+            Assert.Equal(AnnotateMode.Highlight, vm.EditTool);
+            vm.SelectedMarks.Add(new Annotation
+            {
+                Kind = AnnotationKind.Highlight,
+                Color = "#F9E547",
+                Points = [new AnnotationPoint { X = .55, Y = .58 }, new AnnotationPoint { X = .9, Y = .7 }],
+            });
+            Assert.True(await vm.SaveAsync());
+
+            Assert.Equal(originalBytes, File.ReadAllBytes(source));
+            var output = Path.Combine(folder, "source_edited.pdf");
+            Assert.Equal(1, PdfPageTools.PageCount(output));
+            var rendered = PdfPageTools.Preview(output, 0, 1000);
+            using var bitmap = SkiaSharp.SKBitmap.Decode(rendered.Png);
+            var textBackdrop = bitmap.GetPixel((int)(bitmap.Width * .22), (int)(bitmap.Height * .26));
+            var highlight = bitmap.GetPixel((int)(bitmap.Width * .7), (int)(bitmap.Height * .64));
+            Assert.True(textBackdrop.Blue > 150 && textBackdrop.Red < 100, $"Expected vector text label background, got {textBackdrop}.");
+            Assert.True(highlight.Red > 220 && highlight.Green > 210 && highlight.Blue < 210,
+                $"Expected visible translucent highlight, got {highlight}.");
+        }
+        finally
+        {
+            try { Directory.Delete(folder, true); } catch (IOException) { }
+        }
     }
 
     [AvaloniaFact]

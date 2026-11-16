@@ -43,6 +43,8 @@ internal static class ImageReader
             images.Read(path, settings);
             if (formatId == "dds")
                 DdsChannelOrder.Correct(path, images);
+            if (formatId == "raw")
+                RawTone.ToSrgb(images);
         }
         catch (MagickException ex) when (formatId == "dcm")
         {

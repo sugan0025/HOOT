@@ -171,6 +171,52 @@ public class PdfCompressionTests(EngineFixture fx) : IClassFixture<EngineFixture
     }
 
     [Fact]
+    public void Calibrated_and_icc_color_spaces_are_not_reencoded()
+    {
+        using var document = new PdfDocument();
+        var calibrated = new PdfArray(document);
+        calibrated.Elements.Add(new PdfName("/CalRGB"));
+        calibrated.Elements.Add(new PdfDictionary(document));
+
+        var profile = new PdfDictionary(document);
+        profile.Elements.SetInteger("/N", 3);
+        var iccBased = new PdfArray(document);
+        iccBased.Elements.Add(new PdfName("/ICCBased"));
+        iccBased.Elements.Add(profile);
+
+        Assert.False(PdfCompressor.IsDeviceColorSpace(calibrated));
+        Assert.False(PdfCompressor.IsDeviceColorSpace(iccBased));
+        Assert.True(PdfCompressor.IsDeviceColorSpace(new PdfName("/DeviceRGB")));
+    }
+
+    [Fact]
+    public void Non_identity_decode_arrays_are_not_reencoded()
+    {
+        using var document = new PdfDocument();
+        var image = new PdfDictionary(document);
+
+        Assert.True(PdfCompressor.HasIdentityDecode(image, 3)); // implicit [0 1] per component
+
+        var identity = new PdfArray(document);
+        for (var component = 0; component < 3; component++)
+        {
+            identity.Elements.Add(new PdfInteger(0));
+            identity.Elements.Add(new PdfInteger(1));
+        }
+        image.Elements["/Decode"] = identity;
+        Assert.True(PdfCompressor.HasIdentityDecode(image, 3));
+
+        var reversed = new PdfArray(document);
+        for (var component = 0; component < 3; component++)
+        {
+            reversed.Elements.Add(new PdfInteger(1));
+            reversed.Elements.Add(new PdfInteger(0));
+        }
+        image.Elements["/Decode"] = reversed;
+        Assert.False(PdfCompressor.HasIdentityDecode(image, 3));
+    }
+
+    [Fact]
     public async Task Pictures_in_forms_are_sized_where_the_form_draws_them()
     {
         var dir = fx.NewFolder();

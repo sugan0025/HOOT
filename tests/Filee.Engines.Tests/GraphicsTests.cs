@@ -203,6 +203,19 @@ public class GraphicsTests(EngineFixture fx) : IClassFixture<EngineFixture>
     }
 
     [Fact]
+    public void Camera_raw_tone_table_converts_bt709_values_to_srgb()
+    {
+        var table = RawTone.Bt709ToSrgbTable();
+
+        Assert.InRange(table[104], 117, 119);
+        Assert.InRange(table[11], 24, 26);
+        Assert.Equal(0, table[0]);
+        Assert.Equal(255, table[255]);
+        for (var i = 1; i < table.Length; i++)
+            Assert.True(table[i] >= table[i - 1], $"Curve decreases at {i}.");
+    }
+
+    [Fact]
     public async Task Windows_metafiles_are_rendered_at_the_preset_dpi()
     {
         Assert.SkipUnless(OperatingSystem.IsWindows(), "EMF/WMF are read through GDI+ on Windows only.");

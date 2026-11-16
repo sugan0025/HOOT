@@ -38,6 +38,13 @@ public sealed class BlobatarState
     private bool _companionMode;
     private bool _suppressAutonomousWinks;
     private double _acc;
+    /// <summary>Enables the experimental mesh renderer only on the desktop companion's control.</summary>
+    internal bool DepthPreview { get; set; }
+    internal bool MeshWireframe { get; set; }
+    /// <summary>Rotation around the vertical axis, used by the companion's 360-degree turn animation.</summary>
+    internal double MeshSpin { get; set; }
+    internal double MeshYaw => DepthPreview ? Math.Clamp(GazeX / 4.8, -1, 1) * .32 : 0;
+    internal double MeshPitch => DepthPreview ? -Math.Clamp(GazeY / 4, -1, 1) * .14 : 0;
     public bool PrivacyGlasses { get; set; }
     public bool PrivacyFocus { get; set; }
     public bool MusicSway { get; set; }
@@ -449,6 +456,18 @@ public static class BlobatarRenderer
         var cache = state.Cache;
         cache.Ensure(look);
 
+        if (!state.DepthPreview)
+        {
+            Render2D(context, state, mouthOpen, rootMatrix, plump, f, look, cache);
+            return;
+        }
+
+        Render3D(context, state, mouthOpen, rootMatrix, plump, f, look, cache);
+    }
+
+    private static void Render2D(DrawingContext context, BlobatarState state, float mouthOpen,
+        Matrix rootMatrix, Matrix plump, BlobatarFrame f, CircadianLookFrame look, BlobatarBrushCache cache)
+    {
         using (context.PushTransform(rootMatrix))
         {
             using (context.PushTransform(plump))
@@ -486,6 +505,49 @@ public static class BlobatarRenderer
             DrawEye(context, f.Right, 4.6, 3.8, state.RightEyeTiltDeg, state.RightForeshortenX, f, state.HappyCurve, look, cache, 0.0);
             if (state.CompanionMode && state.GlassesProgress > 0)
                 DrawPrivacyGlasses(context, f, state.GlassesProgress);
+        }
+    }
+
+    private static void Render3D(DrawingContext context, BlobatarState state, float mouthOpen,
+        Matrix rootMatrix, Matrix plump, BlobatarFrame f, CircadianLookFrame look, BlobatarBrushCache cache)
+    {
+        using (context.PushTransform(rootMatrix))
+        using (context.PushTransform(plump))
+        {
+            DrawShadow(context, cache, look, f);
+            var body = BuildBody(f);
+            using (context.PushTransform(f.Body.ToAvalonia()))
+            {
+                context.Custom(new BlobMesh(state));
+                var turnCos = Math.Cos(state.MeshSpin);
+                var turnSin = Math.Sin(state.MeshSpin);
+                var spinProjection = Matrix.CreateTranslation(-FaceX, -BodyCy)
+                    * Matrix.CreateScale(turnCos, 1)
+                    * Matrix.CreateTranslation(FaceX + turnSin * 18, BodyCy);
+                using (context.PushTransform(spinProjection))
+                using (context.PushOpacity(Math.Clamp((turnCos + .06) / 1.06, 0, 1)))
+                using (context.PushGeometryClip(body))
+                {
+                    context.DrawEllipse(cache.Blush, null, new Point(39.9, 54.0), 4.4, 2.5);
+                    context.DrawEllipse(cache.Blush, null, new Point(65.2, 54.0), 4.4, 2.5);
+                    if (f.Smile > 0.05f || mouthOpen > 0.015f)
+                        DrawMouth(context, cache, f.Smile, mouthOpen);
+                }
+            }
+
+            var gazeProjection = Matrix.CreateTranslation(-FaceX, -BodyCy)
+                * Matrix.CreateScale(Math.Cos(state.MeshYaw), Math.Cos(state.MeshPitch))
+                * Matrix.CreateTranslation(FaceX + Math.Sin(state.MeshYaw) * 18, BodyCy - Math.Sin(state.MeshPitch) * 18);
+            var faceTurnProjection = Matrix.CreateTranslation(-FaceX, -BodyCy)
+                * Matrix.CreateScale(Math.Cos(state.MeshSpin), 1)
+                * Matrix.CreateTranslation(FaceX + Math.Sin(state.MeshSpin) * 18, BodyCy);
+            using (context.PushTransform(faceTurnProjection))
+            using (context.PushOpacity(Math.Clamp((Math.Cos(state.MeshSpin) + .06) / 1.06, 0, 1)))
+            using (context.PushTransform(gazeProjection))
+            {
+                DrawEye(context, f.Left, 4.8, 4.0, state.LeftEyeTiltDeg, state.LeftForeshortenX, f, state.HappyCurve, look, cache, 0.0);
+                DrawEye(context, f.Right, 4.6, 3.8, state.RightEyeTiltDeg, state.RightForeshortenX, f, state.HappyCurve, look, cache, 0.0);
+            }
         }
     }
 

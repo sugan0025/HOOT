@@ -282,6 +282,30 @@ internal sealed partial class DocxReader
     /// <summary>Merged properties of a paragraph or character style including everything it is based on.</summary>
     private (ParaProps Para, RunProps Run) ResolveStyle(string? styleId)
     {
+        if (_tableStyleParagraphLayers is not null || _tableStyleRunLayers is not null)
+        {
+            var tablePara = _defaultPara.Clone();
+            var tableRun = _defaultRun.Clone();
+            foreach (var layer in _tableStyleParagraphLayers ?? [])
+                tablePara.Apply(layer);
+            foreach (var layer in _tableStyleRunLayers ?? [])
+                tableRun.Apply(layer);
+
+            if (styleId is not null && _styles.TryGetValue(styleId, out var tableStyle))
+            {
+                var chain = new List<Style>();
+                for (var current = tableStyle; current is not null && chain.Count < 20;
+                     current = current.BasedOn is { } basedOn && basedOn != current.Id ? _styles.GetValueOrDefault(basedOn) : null)
+                    chain.Insert(0, current);
+                foreach (var tableLayerStyle in chain)
+                {
+                    tablePara.Apply(tableLayerStyle.PPr);
+                    tableRun.Apply(tableLayerStyle.RPr);
+                }
+            }
+            return (tablePara, tableRun);
+        }
+
         if (styleId is null || !_styles.TryGetValue(styleId, out var style))
             return (_defaultPara.Clone(), _defaultRun.Clone());
         if (_resolvedStyles.TryGetValue(styleId, out var cached))

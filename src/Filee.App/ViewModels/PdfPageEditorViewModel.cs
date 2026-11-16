@@ -7,6 +7,7 @@ using System.Collections.Specialized;
 using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Filee.App.Controls;
 using Filee.App.Services;
 using Filee.Core.Conversion;
 using Filee.Core.History;
@@ -27,6 +28,7 @@ public sealed partial class PdfPageItem(PdfPreviewSource previewSource, int page
     public int PageNumber => PageIndex + 1;
     public string PageText => loc.Format("pdf_editor.page", PageIndex + 1);
     public string SourceName => System.IO.Path.GetFileName(Path);
+    public AnnotationSet Marks { get; } = new();
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(RotationText))]
@@ -119,11 +121,11 @@ public sealed partial class PdfPageEditorViewModel : ObservableObject, IDisposab
     /// The page shown large: the one picked last. Setting it to a page outside the selection selects that page alone.
     /// </summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(SelectedPreviewRotation))]
+    [NotifyPropertyChangedFor(nameof(SelectedPreviewRotation), nameof(SelectedMarks))]
     private PdfPageItem? _selectedPage;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasSelectedPreview))]
+    [NotifyPropertyChangedFor(nameof(HasSelectedPreview), nameof(SelectedMarks))]
     private Bitmap? _selectedPreview;
 
     [ObservableProperty]
@@ -147,9 +149,47 @@ public sealed partial class PdfPageEditorViewModel : ObservableObject, IDisposab
     public bool CanSave => !IsBusy && Pages.Count > 0;
     public bool HasSelectedPreview => SelectedPreview is not null;
     public double SelectedPreviewRotation => SelectedPage?.PreviewRotation ?? 0;
+    public AnnotationSet? SelectedMarks => SelectedPage?.Marks;
+
+    /// <summary>Vector marks that will be appended to the selected page while its PDF objects stay intact.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsPenTool), nameof(IsHighlightTool), nameof(IsTextTool))]
+    private AnnotateMode _editTool = AnnotateMode.Select;
+    [ObservableProperty] private string _editText = "";
+    [ObservableProperty] private string _editColor = "#F9E547";
+    [ObservableProperty] private AnnotationWidth _editWidth = AnnotationWidth.Medium;
+
+    public IReadOnlyList<string> EditColors { get; } = ["#F9E547", "#E5484D", "#2563EB", "#16A34A", "#1C1C1C", "#FFFFFF"];
+    public IReadOnlyList<AnnotationWidth> EditWidths { get; } = Enum.GetValues<AnnotationWidth>();
+    public bool IsPenTool => EditTool == AnnotateMode.Pen;
+    public bool IsHighlightTool => EditTool == AnnotateMode.Highlight;
+    public bool IsTextTool => EditTool == AnnotateMode.Text;
 
     /// <summary>Pages are selected and nothing is loading or saving: Insert, Replace and Extract can act on them.</summary>
     public bool HasSelection => !IsBusy && SelectedPages.Count > 0;
+
+    [RelayCommand]
+    private void SetEditTool(AnnotateMode tool) => EditTool = tool;
+
+    /// <summary>Adds or replaces text from the toolbar at the selected page-canvas location.</summary>
+    public void PlaceText(AnnotationCanvas.TextRequest request)
+    {
+        if (SelectedPage is not { } page || string.IsNullOrWhiteSpace(EditText))
+            return;
+        if (request.Index >= 0 && request.Index < page.Marks.Count)
+        {
+            page.Marks.Change(request.Index, mark => mark.Text = EditText.Trim());
+            return;
+        }
+        page.Marks.Add(new Annotation
+        {
+            Kind = AnnotationKind.Text,
+            Color = EditColor,
+            Width = EditWidth,
+            Points = [request.At.Clone()],
+            Text = EditText.Trim(),
+        });
+    }
 
     partial void OnSelectedPageChanged(PdfPageItem? value)
     {
@@ -530,7 +570,10 @@ public sealed partial class PdfPageEditorViewModel : ObservableObject, IDisposab
     {
         if (IsBusy)
             return false;
-        var pages = items.Select(item => item.Reference).ToList();
+        var orderedItems = items.ToList();
+        var pages = orderedItems.Select(item => item.Reference).ToList();
+        var marks = orderedItems.SelectMany((item, pageIndex) => item.Marks.Marks
+            .Select(mark => new PdfPageMark(pageIndex, mark.Clone()))).ToList();
         if (pages.Count == 0)
             return false;
         var applied = _store.Settings.WithDefaultOutput(preset);
@@ -549,7 +592,11 @@ public sealed partial class PdfPageEditorViewModel : ObservableObject, IDisposab
             var folder = System.IO.Path.GetDirectoryName(output);
             if (!string.IsNullOrEmpty(folder))
                 Directory.CreateDirectory(folder);
-            await Task.Run(() => PdfPageTools.Save(pages, output));
+            await Task.Run(() =>
+            {
+                PdfPageTools.Save(pages, output);
+                PdfVectorAnnotationEditor.Apply(output, marks);
+            });
             PreserveDates(output, applied);
             _store.AddHistory(new HistoryEntry
             {

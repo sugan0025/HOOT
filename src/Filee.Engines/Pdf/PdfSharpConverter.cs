@@ -75,17 +75,15 @@ public sealed class PdfSharpConverter : IConverter, IPdfMerger, IPdfFinisher, II
         {
             ct.ThrowIfCancellationRequested();
             var frame = frames[i];
-            var dpi = frame.Density.Units == DensityUnit.PixelsPerInch && frame.Density.X > 0 ? frame.Density.X
-                : frame.Density.Units == DensityUnit.PixelsPerCentimeter && frame.Density.X > 0 ? frame.Density.X * 2.54
-                : 96.0;
 
             // "pdf" as target: resize / grayscale / metadata apply, no format-specific encoding settings.
             ImageEncoder.ApplyOptions(frame, options, "pdf");
+            var (dpiX, dpiY) = ImageDpi(frame.Density);
             using var stream = EncodeForPdf(frame, step.From, options);
             using var ximage = XImage.FromStream(stream);
 
-            var imageWidthPt = frame.Width / dpi * PointsPerInch;
-            var imageHeightPt = frame.Height / dpi * PointsPerInch;
+            var imageWidthPt = frame.Width / dpiX * PointsPerInch;
+            var imageHeightPt = frame.Height / dpiY * PointsPerInch;
             var page = document.AddPage();
             var (pageWidth, pageHeight) = PageSize(pdfOptions.PageSize, imageWidthPt > imageHeightPt);
             if (pdfOptions.PageSize == PdfPageSize.FitImage)
@@ -112,6 +110,24 @@ public sealed class PdfSharpConverter : IConverter, IPdfMerger, IPdfFinisher, II
             return [];
         document.Save(path);
         return [path];
+    }
+
+    private static (double X, double Y) ImageDpi(Density density)
+    {
+        var conversion = density.Units switch
+        {
+            DensityUnit.PixelsPerInch => 1.0,
+            DensityUnit.PixelsPerCentimeter => 2.54,
+            _ => 0.0,
+        };
+        if (conversion == 0)
+            return (96.0, 96.0);
+
+        var dpiX = density.X > 0 ? density.X * conversion : 0.0;
+        var dpiY = density.Y > 0 ? density.Y * conversion : 0.0;
+        if (dpiX <= 0 && dpiY <= 0)
+            return (96.0, 96.0);
+        return (dpiX > 0 ? dpiX : dpiY, dpiY > 0 ? dpiY : dpiX);
     }
 
     /// <summary>"Pages per sheet" (PdfSheets): the pages of the range, several to a sheet, in one new PDF.</summary>

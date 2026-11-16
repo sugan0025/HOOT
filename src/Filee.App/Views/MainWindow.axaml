@@ -53,7 +53,7 @@
           <Button x:Name="AndroidMascotButton" Classes="navtoggle" Click="OnAndroidMascotClick"
                   Padding="0" Background="Transparent" BorderThickness="0" VerticalAlignment="Center"
                   AutomationProperties.Name="HOOT mascot" ToolTip.Tip="HOOT mascot">
-            <c:BlobatarControl x:Name="SidebarBlob" Width="44" Height="44" Margin="0,0,2,0"
+            <c:BlobatarControl x:Name="SidebarBlob" Width="50" Height="44" Margin="0,0,2,0"
                                PointerReactionsEnabled="False" IsHitTestVisible="False" />
           </Button>
 

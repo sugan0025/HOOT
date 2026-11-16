@@ -15,6 +15,25 @@ namespace Filee.App.Tests;
 public class BlobatarTests
 {
     [AvaloniaFact]
+    public void Three_d_renderer_is_opt_in_and_local_to_the_selected_control()
+    {
+        var regularBlob = new BlobatarControl();
+        var companionBlob = new BlobatarControl();
+
+        Assert.False(regularBlob.Use3DRenderer);
+        Assert.False(regularBlob.State.DepthPreview);
+        companionBlob.Use3DRenderer = true;
+        Assert.True(companionBlob.State.DepthPreview);
+        Assert.False(regularBlob.State.DepthPreview);
+
+        companionBlob.SetMeshSpin(Math.PI);
+        Assert.Equal(Math.PI, companionBlob.State.MeshSpin, 6);
+        companionBlob.Use3DRenderer = false;
+        Assert.False(companionBlob.State.DepthPreview);
+        Assert.Equal(0, companionBlob.State.MeshSpin);
+    }
+
+    [AvaloniaFact]
     public void Companion_window_loads_the_existing_blob_control()
     {
         TestServices.EnsureInitialized();

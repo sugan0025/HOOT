@@ -148,7 +148,7 @@ internal sealed class XlsxReader
             Top: Side(b.Element(S + "top")),
             Bottom: Side(b.Element(S + "bottom")))).ToList();
 
-        foreach (var xf in root.Element(S + "cellXfs")?.Elements(S + "xf") ?? [])
+        CellStyle ReadCellStyle(XElement xf)
         {
             var font = Index(xf, "fontId") is var fi && fi < fonts.Count ? fonts[fi] : null;
             var fill = Index(xf, "fillId") is var fl && fl < fills.Count ? fills[fl] : null;
@@ -182,8 +182,62 @@ internal sealed class XlsxReader
                 Top = border.Item3,
                 Bottom = border.Item4,
             };
+            return style;
+        }
+
+        string Format(XElement xf)
+        {
             var formatId = Index(xf, "numFmtId");
-            _cellFormats.Add((style, formats.GetValueOrDefault(formatId) ?? NumberFormatter.BuiltInFormats.GetValueOrDefault(formatId, "General")));
+            return formats.GetValueOrDefault(formatId) ?? NumberFormatter.BuiltInFormats.GetValueOrDefault(formatId, "General");
+        }
+
+        bool Applies(XElement xf, string applyAttribute, string idAttribute, string? childElement = null)
+        {
+            // Explicit apply flags are authoritative. Older producers often omit them, so retain the existing
+            // direct-format behavior for non-default IDs and inline alignment while allowing omitted/default IDs
+            // to inherit the referenced named style.
+            if (bool.TryParse((string?)xf.Attribute(applyAttribute), out var applies))
+                return applies;
+            if ((string?)xf.Attribute(applyAttribute) is "1")
+                return true;
+            if ((string?)xf.Attribute(applyAttribute) is "0")
+                return false;
+            return int.TryParse((string?)xf.Attribute(idAttribute), out var id) && id != 0
+                || childElement is not null && xf.Element(S + childElement) is not null;
+        }
+
+        var styleXfs = (root.Element(S + "cellStyleXfs")?.Elements(S + "xf") ?? []).ToList();
+        var baseStyles = styleXfs.Select(xf => (Style: ReadCellStyle(xf), Format: Format(xf))).ToList();
+        foreach (var xf in root.Element(S + "cellXfs")?.Elements(S + "xf") ?? [])
+        {
+            var style = Index(xf, "xfId") is var xfId && xfId < baseStyles.Count
+                ? baseStyles[xfId].Style
+                : CellStyle.Default;
+            var direct = ReadCellStyle(xf);
+
+            if (Applies(xf, "applyFont", "fontId"))
+                style = style with
+                {
+                    Bold = direct.Bold,
+                    Italic = direct.Italic,
+                    Underline = direct.Underline,
+                    Strike = direct.Strike,
+                    FontSize = direct.FontSize,
+                    Color = direct.Color,
+                };
+            if (Applies(xf, "applyFill", "fillId"))
+                style = style with { Fill = direct.Fill };
+            if (Applies(xf, "applyBorder", "borderId"))
+                style = style with { Left = direct.Left, Right = direct.Right, Top = direct.Top, Bottom = direct.Bottom };
+            if (Applies(xf, "applyAlignment", "alignmentId", "alignment"))
+                style = style with { Align = direct.Align, VerticalAlign = direct.VerticalAlign, Wrap = direct.Wrap };
+
+            var format = Applies(xf, "applyNumberFormat", "numFmtId")
+                ? Format(xf)
+                : Index(xf, "xfId") is var baseId && baseId < baseStyles.Count
+                    ? baseStyles[baseId].Format
+                    : "General";
+            _cellFormats.Add((style, format));
         }
     }
 

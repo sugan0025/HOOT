@@ -135,6 +135,12 @@ public sealed class MagickImageConverter : IConverter, ITiffMerger, IImageTransf
         progress?.Report(0.7);
 
         var written = ImageEncoder.Write(frames, step.To, step.Output, step.Preset.Image, step.InputPath, animation);
+        if (step.To == "cur" && from == "cur" && CursorFile.HotspotFollows(step.Preset.Image)
+            && CursorFile.Hotspot(step.InputPath) is { } hotspot)
+        {
+            foreach (var path in written)
+                CursorFile.Write(path, hotspot, step.Preset.Image);
+        }
         progress?.Report(1);
         return written;
     }
