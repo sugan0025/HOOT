@@ -1,6 +1,7 @@
 # Checks a portable package the way a user gets it: verifies the archive checksum, unpacks it and runs the CLI,
 # rhwp and 7-Zip from it, including conversions through rhwp (TXT -> HWPX -> HWP -> PDF). On Linux it also loads
-# the X11 input hook back end (libuiohook-xrecord.so) to prove its libraries and glibc requirement resolve.
+# the X11 input hook back end when it is a loose file. Single-file builds embed native libraries for extraction at
+# launch; the later desktop-app smoke check verifies that runtime loading path.
 # Used by .github/workflows/portable.yml on the build machine and on the oldest supported Ubuntu.
 #
 # In GitHub Actions it sets FILEE_SMOKE_APP (the desktop app, for build/smoke-launch-app.py) and FILEE_SMOKE_PACKAGE
@@ -64,11 +65,15 @@ $header = [Text.Encoding]::ASCII.GetString([IO.File]::ReadAllBytes($pdf), 0, 5)
 if ($header -ne '%PDF-') { throw "rhwp's PDF does not start with %PDF- ($header)." }
 
 if ($IsLinux) {
-    # The loader dlopens this back end in an X11 session; loading it here fails like the app would when a library
-    # or the glibc version it needs is missing.
+    # Single-file app releases embed this library and extract it at startup, so only load it directly when it is
+    # also present as a loose package file. The desktop-app smoke check below verifies the embedded path.
     $backend = Join-Path $bin 'libuiohook-xrecord.so'
-    Invoke-Checked 'Load libuiohook-xrecord.so' {
-        python3 -c 'import ctypes, sys; ctypes.CDLL(sys.argv[1]); print("Loaded " + sys.argv[1])' $backend
+    if (Test-Path -LiteralPath $backend -PathType Leaf) {
+        Invoke-Checked 'Load libuiohook-xrecord.so' {
+            python3 -c 'import ctypes, sys; ctypes.CDLL(sys.argv[1]); print("Loaded " + sys.argv[1])' $backend
+        }
+    } else {
+        Write-Host 'libuiohook-xrecord.so is embedded in the single-file app; its load is checked by the desktop-app smoke test.'
     }
     # Unhwp: from its package on x64, Filee's own build on ARM64 (build/build-native.py, -UnhwpOverride).
     Invoke-Checked 'Load libunhwp.so' {
