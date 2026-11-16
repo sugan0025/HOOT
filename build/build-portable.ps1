@@ -127,7 +127,6 @@ foreach ($notice in @('LICENSE', 'THIRD-PARTY-NOTICES.md')) {
 if ($Runtime.StartsWith('osx-')) {
     $pin = $magickNative[$Runtime]
     $library = Join-Path $publish "Magick.Native-Q8-$($Runtime.Substring(4)).dll.dylib"
-    if (-not (Test-Path -LiteralPath $library -PathType Leaf)) { throw "Publish did not produce $(Split-Path $library -Leaf)" }
     if ($pin.sha256 -notmatch '^[0-9a-fA-F]{64}$') { throw "A pinned Magick.Native download is missing for $Runtime." }
     $cache = Join-Path $root 'build/.cache/portable-downloads'
     $cached = Join-Path $cache "$($pin.sha256).dylib"
