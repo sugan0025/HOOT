@@ -91,7 +91,7 @@ public sealed class ProcessRunnerOutputTests : IDisposable
         var script = Script("""
             @echo off
             >"%~dp0out\out.pdf" echo %%PDF-1.4
-            ping -n 4 127.0.0.1 >nul
+            %SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -NonInteractive -Command "Start-Sleep -Seconds 3"
             exit /b 3
             """);
         var complete = LibreOfficeConverter.OutputComplete(Output);
