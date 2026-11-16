@@ -58,12 +58,12 @@ public sealed class PdfVectorAnnotationEditorTests(EngineFixture fixture) : ICla
         Assert.NotNull(bitmap);
         var colored = 0;
         for (var y = 0; y < bitmap.Height; y++)
-        for (var x = 0; x < bitmap.Width; x++)
-        {
-            var pixel = bitmap.GetPixel(x, y);
-            if (pixel.Red < 245 || pixel.Green < 245 || pixel.Blue < 245)
-                colored++;
-        }
+            for (var x = 0; x < bitmap.Width; x++)
+            {
+                var pixel = bitmap.GetPixel(x, y);
+                if (pixel.Red < 245 || pixel.Green < 245 || pixel.Blue < 245)
+                    colored++;
+            }
         Assert.True(colored > 1000, $"Expected visible vector edits, found {colored} non-white pixels.");
         Assert.DoesNotContain("/Subtype /Image", System.Text.Encoding.Latin1.GetString(File.ReadAllBytes(output)));
     }

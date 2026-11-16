@@ -73,8 +73,9 @@ public class LibreOfficeFormatTests(EngineFixture fx) : IClassFixture<EngineFixt
                 Assert.Contains(':', filter);
         }
         // Built-in engines stay first: LibreOffice's edges cost more than a normal direct conversion, except
-        // presentations → PDF, which it lays out like PowerPoint (Settings → Engines, on by default).
-        Assert.All(LibreOffice.Edges.Where(e => !(impress.Contains(e.From) && e.To == "pdf")), e => Assert.True(e.Cost >= 25));
+        // presentations → PDF, which it lays out like PowerPoint, and RTF → TXT, the direct whitespace-preserving route.
+        Assert.All(LibreOffice.Edges.Where(e => !(impress.Contains(e.From) && e.To == "pdf")
+                && !(e.From == "rtf" && e.To == "txt")), e => Assert.True(e.Cost >= 25));
         foreach (var from in new[] { "dot", "wps", "wpd", "lwp", "abw", "pages", "sdw", "cwk", "mcw", "602", "psw", "fodt", "ott", "et", "numbers", "sdc", "fods", "ots", "xlt", "key", "dps", "sda", "fodp", "otp", "pub", "cdr", "cgm", "vsd", "odg", "fodg" })
             Assert.Contains(LibreOffice.Edges, e => e.From == from && e.To == "pdf");
         // Read-only formats are never targets.

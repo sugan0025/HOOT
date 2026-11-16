@@ -308,7 +308,7 @@ public class ImageToolTests(EngineFixture fx) : IClassFixture<EngineFixture>
     {
         var source = Path.Combine(fx.NewFolder(), "density.png");
         using (var image = new MagickImage(MagickColors.Lime, 400, 200)
-               { Density = new Density(dpiX, dpiY, DensityUnit.PixelsPerInch) })
+        { Density = new Density(dpiX, dpiY, DensityUnit.PixelsPerInch) })
             image.Write(source, MagickFormat.Png);
 
         var job = await fx.ConvertAsync([source], new Preset
@@ -332,16 +332,16 @@ public class ImageToolTests(EngineFixture fx) : IClassFixture<EngineFixture>
         var bottom = -1;
         var pixels = image.GetPixels();
         for (var y = 0; y < (int)image.Height; y++)
-        for (var x = 0; x < (int)image.Width; x++)
-        {
-            var color = pixels.GetPixel(x, y).ToColor();
-            if (color is not { G: > 150 } || color.R > 100 || color.B > 100)
-                continue;
-            left = Math.Min(left, x);
-            top = Math.Min(top, y);
-            right = Math.Max(right, x);
-            bottom = Math.Max(bottom, y);
-        }
+            for (var x = 0; x < (int)image.Width; x++)
+            {
+                var color = pixels.GetPixel(x, y).ToColor();
+                if (color is not { G: > 150 } || color.R > 100 || color.B > 100)
+                    continue;
+                left = Math.Min(left, x);
+                top = Math.Min(top, y);
+                right = Math.Max(right, x);
+                bottom = Math.Max(bottom, y);
+            }
 
         Assert.True(right >= left && bottom >= top, "Rendered PDF contains no detectable source-image pixels.");
         return (left, top, right, bottom);
