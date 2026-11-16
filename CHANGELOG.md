@@ -14,6 +14,18 @@ change, a language may repeat; a language without lines shows the English ones):
 - `recommended`: bug fixes. The card shows once per version.
 - `optional`: new features only. No card, the sidebar button only.
 
+## 3.0.0
+
+<!-- update
+level: optional
+en: Enable the experimental 3D desktop Blob in General Settings; the familiar 2D Blob remains the default.
+en: Edit PDF text and vector annotations in HOOT, with improved image-to-PDF page sizing and conversion formatting.
+-->
+
+- **Experimental 3D companion**: General Settings adds an opt-in 3D Blob renderer for the desktop companion, with travel-hop and 360-degree turn animations. The existing 2D Blob remains the default; the main-window and radial-wheel Blobs are unchanged.
+- **PDF editor**: Adds text and vector annotation editing in the PDF editor view.
+- **Conversion fixes**: Improves image-to-PDF page sizing and output fidelity for PowerPoint text layout, camera RAW tones, DOCX tables and headers, HWPX line breaks, RTF plain text routing, PDF annotations, and Windows cursor hotspots.
+
 ## 2.6.7
 
 <!-- update

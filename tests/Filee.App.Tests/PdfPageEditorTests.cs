@@ -295,6 +295,8 @@ public class PdfPageEditorTests
             var source = MakePdf(folder, "source.pdf", (210, 0), (220, 0), (230, 0), (240, 0));
             var vm = Editor(folder, source, out _);
             var window = new PdfPageEditorWindow { DataContext = vm };
+            // Keep all four pages inside the headless viewport so the drag target has a realized ListBox container.
+            window.Height = 1000;
             window.Show();
             await vm.LoadThumbnailsAsync();
             RenderTests.Pump();
