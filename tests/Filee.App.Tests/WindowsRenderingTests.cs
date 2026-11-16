@@ -28,13 +28,22 @@ public class WindowsRenderingTests
     [Theory]
     [InlineData(null)]
     [InlineData("vulkan")]
-    public void Unset_and_unknown_values_keep_Avalonias_defaults(string? choice)
+    public void Unset_and_unknown_values_use_software_with_transparent_composition_fallbacks(string? choice)
     {
         var defaults = new Win32PlatformOptions();
         var options = WindowsRendering.Options(choice, adapters: null);
-        Assert.Equal(defaults.RenderingMode, options.RenderingMode);
+        Assert.Equal([Win32RenderingMode.Software], options.RenderingMode);
         Assert.Equal(defaults.CompositionMode, options.CompositionMode);
         Assert.Null(options.GraphicsAdapterSelectionCallback);
+    }
+
+    [Fact]
+    public void Explicit_gpu_preserves_Avalonias_acceleration_defaults()
+    {
+        var defaults = new Win32PlatformOptions();
+        var options = WindowsRendering.Options("gpu", adapters: null);
+        Assert.Equal(defaults.RenderingMode, options.RenderingMode);
+        Assert.Equal(defaults.CompositionMode, options.CompositionMode);
     }
 
     [Fact]
@@ -74,10 +83,15 @@ public class WindowsRenderingTests
     [Fact]
     public void Every_documented_choice_changes_something()
     {
-        var defaults = new Win32PlatformOptions();
+        var defaults = WindowsRendering.Options(null, adapters: null);
         foreach (var choice in WindowsRendering.Choices)
         {
             var options = WindowsRendering.Options(choice, adapters: null);
+            if (choice == "software")
+            {
+                Assert.Equal(defaults.RenderingMode, options.RenderingMode);
+                continue;
+            }
             Assert.False(options.RenderingMode.SequenceEqual(defaults.RenderingMode)
                          && options.CompositionMode.SequenceEqual(defaults.CompositionMode), choice);
         }

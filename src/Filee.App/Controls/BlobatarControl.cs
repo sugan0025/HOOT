@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
+using Avalonia.VisualTree;
 using Filee.App.Services;
 
 namespace Filee.App.Controls;
@@ -50,6 +51,9 @@ public class BlobatarControl : Control
     private const double IdleFrameInterval = 1.0 / 30.0;
 
     private TopLevel? _topLevel;
+    private readonly List<Visual> _visibilityAncestors = [];
+    private int _animationEpoch;
+    internal bool IsAnimationLoopRunning => _isLooping;
     private CircadianService? _circadian;
     private bool _isLooping;
     private TimeSpan? _lastFrameTime;
@@ -126,6 +130,8 @@ public class BlobatarControl : Control
             StartLoop();
             InvalidateVisual();
         }
+        else if (change.Property == IsAnimatedProperty || change.Property == IsVisibleProperty)
+            RefreshAnimationLoop();
     }
 
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
@@ -136,6 +142,13 @@ public class BlobatarControl : Control
         {
             _topLevel.PointerMoved += OnWindowPointerMoved;
             _topLevel.PointerExited += OnWindowPointerExited;
+            _topLevel.PropertyChanged += OnHostPropertyChanged;
+        }
+        foreach (var ancestor in this.GetVisualAncestors())
+        {
+            if (ancestor == _topLevel) continue;
+            _visibilityAncestors.Add(ancestor);
+            ancestor.PropertyChanged += OnHostPropertyChanged;
         }
 
         _circadian = AppHost.TryGet<CircadianService>();
@@ -153,6 +166,7 @@ public class BlobatarControl : Control
         {
             _topLevel.PointerMoved -= OnWindowPointerMoved;
             _topLevel.PointerExited -= OnWindowPointerExited;
+            _topLevel.PropertyChanged -= OnHostPropertyChanged;
             _topLevel = null;
         }
         if (_circadian is not null)
@@ -161,11 +175,37 @@ public class BlobatarControl : Control
             _circadian = null;
         }
         State.AudioEnabled = false;
-        _isLooping = false;
+        foreach (var ancestor in _visibilityAncestors)
+            ancestor.PropertyChanged -= OnHostPropertyChanged;
+        _visibilityAncestors.Clear();
+        StopLoop();
         base.OnDetachedFromVisualTree(e);
     }
 
     private void OnCircadianChanged(object? sender, EventArgs e) => StartLoop();
+
+    private bool CanAnimate => IsAnimated && IsVisible && _visibilityAncestors.All(a => a.IsVisible)
+        && _topLevel is { IsVisible: true }
+        && _topLevel is not Window { WindowState: WindowState.Minimized };
+
+    private void OnHostPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+    {
+        if (e.Property == IsVisibleProperty || e.Property == Window.WindowStateProperty)
+            RefreshAnimationLoop();
+    }
+
+    private void RefreshAnimationLoop()
+    {
+        if (CanAnimate) StartLoop();
+        else StopLoop();
+    }
+
+    private void StopLoop()
+    {
+        _isLooping = false;
+        _animationEpoch++;
+        _lastFrameTime = null;
+    }
 
     private void OnWindowPointerMoved(object? sender, PointerEventArgs e)
     {
@@ -249,19 +289,25 @@ public class BlobatarControl : Control
 
     private void StartLoop()
     {
-        if (_isLooping || !IsAnimated || _topLevel is null)
+        if (_isLooping || !CanAnimate || _topLevel is null)
             return;
 
         _isLooping = true;
         _lastFrameTime = null;
         _sinceDraw = 0;
-        _topLevel.RequestAnimationFrame(OnFrame);
+        var epoch = ++_animationEpoch;
+        _topLevel.RequestAnimationFrame(time => OnFrame(time, epoch));
     }
 
-    private void OnFrame(TimeSpan time)
+    private void OnFrame(TimeSpan time, int epoch)
     {
-        if (!_isLooping || _topLevel is null)
+        if (!_isLooping || _topLevel is null || epoch != _animationEpoch)
             return;
+        if (!CanAnimate)
+        {
+            StopLoop();
+            return;
+        }
 
         var dt = _lastFrameTime is { } last ? Math.Min((time - last).TotalSeconds, 0.05) : 1 / 60.0;
         _lastFrameTime = time;
@@ -278,10 +324,9 @@ public class BlobatarControl : Control
             _sinceDraw = 0;
         }
 
-        var minimised = _topLevel is Window { WindowState: WindowState.Minimized };
-        if (IsAnimated && IsVisible && !minimised && (active || motion))
+        if (CanAnimate && (active || motion))
         {
-            _topLevel.RequestAnimationFrame(OnFrame);
+            _topLevel.RequestAnimationFrame(next => OnFrame(next, epoch));
         }
         else
         {

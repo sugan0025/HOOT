@@ -15,6 +15,51 @@ namespace Filee.App.Tests;
 public class BlobatarTests
 {
     [AvaloniaFact]
+    public void Animation_stops_when_parent_hidden_and_resumes_when_shown()
+    {
+        var blob = new BlobatarControl { AudioEnabled = false };
+        var parent = new Border { Child = blob };
+        var window = new Window { Content = parent };
+        try
+        {
+            window.Show();
+            Assert.True(blob.IsAnimationLoopRunning);
+            parent.IsVisible = false;
+            Assert.False(blob.IsAnimationLoopRunning);
+            blob.Celebrate();
+            Assert.False(blob.IsAnimationLoopRunning);
+            parent.IsVisible = true;
+            Assert.True(blob.IsAnimationLoopRunning);
+            window.Hide();
+            Assert.False(blob.IsAnimationLoopRunning);
+            window.Show();
+            Assert.True(blob.IsAnimationLoopRunning);
+            blob.IsAnimated = false;
+            Assert.False(blob.IsAnimationLoopRunning);
+            blob.IsAnimated = true;
+            Assert.True(blob.IsAnimationLoopRunning);
+        }
+        finally { window.Close(); }
+        Assert.False(blob.IsAnimationLoopRunning);
+    }
+
+    [AvaloniaFact]
+    public void Animation_stops_when_window_minimized_and_resumes_on_restore()
+    {
+        var blob = new BlobatarControl { AudioEnabled = false };
+        var window = new Window { Content = blob };
+        try
+        {
+            window.Show();
+            window.WindowState = WindowState.Minimized;
+            Assert.False(blob.IsAnimationLoopRunning);
+            window.WindowState = WindowState.Normal;
+            Assert.True(blob.IsAnimationLoopRunning);
+        }
+        finally { window.Close(); }
+    }
+
+    [AvaloniaFact]
     public void Three_d_renderer_is_opt_in_and_local_to_the_selected_control()
     {
         var regularBlob = new BlobatarControl();

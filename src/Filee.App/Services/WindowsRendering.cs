@@ -5,7 +5,8 @@
 // Avalonia's defaults: ANGLE (OpenGL ES on Direct3D 11) composed through WinUI composition, else DirectComposition, else
 // drawn into the window's redirection surface; software rendering when Direct3D 11 can't start. Every one of these
 // keeps per-pixel transparency (a redirection surface through DwmEnableBlurBehindWindow with an empty region), so
-// Filee keeps the defaults and only changes them when the variable asks.
+// HOOT defaults to software rendering: the continuously animated companion can grow native ANGLE/Intel driver
+// allocations even with a small Skia resource cache. Explicit GPU modes remain available for heavier windows.
 
 using System.Runtime.InteropServices;
 using Avalonia;
@@ -17,8 +18,8 @@ internal static class WindowsRendering
 {
     public const string Variable = "FILEE_RENDERING";
 
-    /// <summary>FILEE_RENDERING's values besides "auto" (or unset): Avalonia's defaults.</summary>
-    public static readonly IReadOnlyList<string> Choices = ["dcomp", "redirection", "software"];
+    /// <summary>Explicit rendering choices; auto/unset uses HOOT's low-memory software default.</summary>
+    public static readonly IReadOnlyList<string> Choices = ["gpu", "dcomp", "redirection", "software"];
 
     /// <summary>The variable's value in lower case, or null for unset, empty and "auto".</summary>
     public static string? Normalize(string? value)
@@ -30,7 +31,7 @@ internal static class WindowsRendering
     /// <summary>
     /// Avalonia's Windows options for <paramref name="choice"/> (from <see cref="Normalize"/>): "dcomp" skips WinUI
     /// composition, "redirection" draws with Direct3D into the redirection surface, "software" without the GPU. Unknown
-    /// values keep the defaults. <paramref name="adapters"/> hears which graphics adapters Direct3D found and which one
+    /// values keep the software default; "gpu" restores Avalonia's GPU defaults. <paramref name="adapters"/> hears which graphics adapters Direct3D found and which one
     /// it uses (the first, as without the callback). Not on ARM64: there the callback would turn off Avalonia's own
     /// choice of adapter.
     /// </summary>
@@ -39,6 +40,8 @@ internal static class WindowsRendering
         var options = new Win32PlatformOptions();
         switch (choice)
         {
+            case "gpu":
+                break;
             case "dcomp":
                 options.CompositionMode = [Win32CompositionMode.DirectComposition, Win32CompositionMode.RedirectionSurface];
                 break;
@@ -46,6 +49,7 @@ internal static class WindowsRendering
                 options.CompositionMode = [Win32CompositionMode.RedirectionSurface];
                 break;
             case "software":
+            default:
                 options.RenderingMode = [Win32RenderingMode.Software];
                 break;
         }
