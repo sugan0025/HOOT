@@ -64,7 +64,7 @@ jobs:
       # Built first and tested like CI: the UI tests on their own with crash and hang blame (a crash names the
       # running test and leaves a dump in TestResults), then the rest.
       - name: Build
-        run: dotnet build Filee.slnx -c Release
+        run: dotnet build Filee.slnx -c Release -m:1
 
       - name: Test UI on its own
         run: dotnet test tests/Filee.App.Tests --no-build -c Release --blame-crash --blame-hang-timeout 5m --logger "console;verbosity=normal" --results-directory TestResults/app
