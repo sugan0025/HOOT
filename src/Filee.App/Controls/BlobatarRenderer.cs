@@ -43,8 +43,6 @@ public sealed class BlobatarState
     internal bool MeshWireframe { get; set; }
     /// <summary>Rotation around the vertical axis, used by the companion's 360-degree turn animation.</summary>
     internal double MeshSpin { get; set; }
-    internal double MeshYaw => DepthPreview ? Math.Clamp(GazeX / 4.8, -1, 1) * .32 : 0;
-    internal double MeshPitch => DepthPreview ? -Math.Clamp(GazeY / 4, -1, 1) * .14 : 0;
     public bool PrivacyFocus { get; set; }
     public bool MusicSway { get; set; }
     private double _swayPhase;
@@ -525,15 +523,11 @@ public static class BlobatarRenderer
                 }
             }
 
-            var gazeProjection = Matrix.CreateTranslation(-FaceX, -BodyCy)
-                * Matrix.CreateScale(Math.Cos(state.MeshYaw), Math.Cos(state.MeshPitch))
-                * Matrix.CreateTranslation(FaceX + Math.Sin(state.MeshYaw) * 18, BodyCy - Math.Sin(state.MeshPitch) * 18);
             var faceTurnProjection = Matrix.CreateTranslation(-FaceX, -BodyCy)
                 * Matrix.CreateScale(Math.Cos(state.MeshSpin), 1)
                 * Matrix.CreateTranslation(FaceX + Math.Sin(state.MeshSpin) * 18, BodyCy);
             using (context.PushTransform(faceTurnProjection))
             using (context.PushOpacity(Math.Clamp((Math.Cos(state.MeshSpin) + .06) / 1.06, 0, 1)))
-            using (context.PushTransform(gazeProjection))
             {
                 DrawEye(context, f.Left, 4.8, 4.0, state.LeftEyeTiltDeg, state.LeftForeshortenX, f, state.HappyCurve, look, cache, 0.0);
                 DrawEye(context, f.Right, 4.6, 3.8, state.RightEyeTiltDeg, state.RightForeshortenX, f, state.HappyCurve, look, cache, 0.0);

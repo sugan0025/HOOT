@@ -50,7 +50,7 @@ public partial class BackFaceTests
             foreach (var child in presets[id].SubPresetIds)
             {
                 Assert.Contains(child, new[] { "rotate-left", "rotate-right", "rotate-180", "tool-pdf-crop",
-                    "pdf-rotate-left", "pdf-rotate-right", "tool-pdf-pages", "pdf-split", "tool-pdf-add", "crop-video-auto", "crop-video-16-9", "crop-video-9-16", "crop-video-4-3", "crop-video-1-1", "crop-video-21-9",
+                    "pdf-rotate-left", "pdf-rotate-right", "tool-pdf-pages", "pdf-split", "tool-pdf-add", "tool-pdf-text", "crop-video-auto", "crop-video-16-9", "crop-video-9-16", "crop-video-4-3", "crop-video-1-1", "crop-video-21-9",
                     "size-compress", "size-1mb", "size-2mb", "size-5mb", "size-10mb", "size-15mb", "size-25mb" });
                 Assert.False(presets[child].IsGroup);
                 yield return 'E';

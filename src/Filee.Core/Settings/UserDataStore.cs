@@ -1098,6 +1098,25 @@ internal static class SettingsMigrations
         //      claims stay put. (Schema 78 may be renumbered if another change takes it first.)
         if (from < 78)
             changed |= LearnExtensions(profiles, out _, ["exe", "dll"]);
+        // v83: add existing PDF text-object editing to the PDF Edit sub-wheel while preserving its saved order and
+        //      any other user edits. The standalone tool is also added to the preset library if it was not there.
+        if (from < 83)
+        {
+            var textTool = BuiltInData.CreatePresets().Single(p => p.Id == "tool-pdf-text");
+            if (presets.All(p => p.Id != textTool.Id))
+            {
+                var groupIndex = presets.FindIndex(p => p.Id == "pdf-edit");
+                presets.Insert(groupIndex < 0 ? presets.Count : groupIndex + 1, textTool);
+                changed = true;
+            }
+
+            if (presets.FirstOrDefault(p => p.Id == "pdf-edit") is { SubPresetIds: { } children } pdfEdit
+                && !children.Contains(textTool.Id, StringComparer.Ordinal))
+            {
+                children.Add(textTool.Id);
+                changed = true;
+            }
+        }
         return changed;
     }
 

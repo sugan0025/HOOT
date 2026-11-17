@@ -404,9 +404,10 @@ public class DonutGroupTests
             Assert.True(vm.ReserveSubRing);
             Assert.True(vm.ToggleFace());
             Assert.True(vm.Items[0].IsGroup);
-            Assert.Equal(6, vm.Items[0].Children!.Count);
+            Assert.Equal(7, vm.Items[0].Children!.Count);
             Assert.Equal("tool-pdf-crop", vm.PresetShownAt(0, 0)!.Id);
             Assert.Equal("tool-pdf-add", vm.PresetShownAt(0, 5)!.Id);
+            Assert.Equal("tool-pdf-text", vm.PresetShownAt(0, 6)!.Id);
 
             vm.Load([@"C:\photos\a.jpg"], clickMode: true); // the image donut has
             vm.FitToThisDonut();

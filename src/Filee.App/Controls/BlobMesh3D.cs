@@ -34,15 +34,19 @@ internal sealed class BlobMesh : ICustomDrawOperation
     private readonly bool _wireframe;
 
     public Rect Bounds { get; } = new(0, 0, 110, 110);
+    internal Rect ProjectedSurfaceBounds { get; }
     public static int VertexCount => Rings * Segments + 2;
     public static int TriangleCount => Indices.Length / 3;
+
+    internal static Matrix4x4 SurfaceRotation(BlobatarState state) => Matrix4x4.CreateRotationY((float)state.MeshSpin);
 
     public BlobMesh(BlobatarState state)
     {
         _wireframe = state.MeshWireframe;
         var frame = state.Frame;
-        var rotation = Matrix4x4.CreateRotationY((float)(state.MeshYaw + state.MeshSpin))
-            * Matrix4x4.CreateRotationX((float)state.MeshPitch);
+        // Cursor gaze belongs to the eyes. Rotating the entire shell with eye gaze makes the silhouette
+        // appear to deform as the pointer moves; only the explicit turn animation rotates the 3D body.
+        var rotation = SurfaceRotation(state);
         var positions = BuildVertices(frame);
         var transformed = new Vector3[positions.Length];
         Array.Fill(_firstNeighbor, -1);
@@ -51,6 +55,10 @@ internal sealed class BlobMesh : ICustomDrawOperation
         var light = Vector3.Normalize(new Vector3(-.35f, -.65f, 1));
         var specularDirection = Vector3.Normalize(light + Vector3.UnitZ);
         var look = state.Look;
+        var minX = float.PositiveInfinity;
+        var minY = float.PositiveInfinity;
+        var maxX = float.NegativeInfinity;
+        var maxY = float.NegativeInfinity;
 
         for (var i = 0; i < positions.Length; i++)
         {
@@ -58,6 +66,10 @@ internal sealed class BlobMesh : ICustomDrawOperation
             var n = Vector3.Normalize(Vector3.TransformNormal(transformedNormals[i], rotation));
             transformed[i] = p;
             _points[i] = new SKPoint(p.X + (float)BlobatarLayout.FaceX, p.Y + (float)BlobatarLayout.BodyCy);
+            minX = Math.Min(minX, _points[i].X);
+            minY = Math.Min(minY, _points[i].Y);
+            maxX = Math.Max(maxX, _points[i].X);
+            maxY = Math.Max(maxY, _points[i].Y);
 
             var gradient = Math.Clamp((p.Y + 33) / 66, 0, 1);
             var a = gradient < .48f ? look.Hi : look.Mid;
@@ -68,6 +80,7 @@ internal sealed class BlobMesh : ICustomDrawOperation
             byte Channel(byte x, byte y) => (byte)Math.Clamp((x + (y - x) * t) * diffuse + specular, 0, 255);
             _colors[i] = new SKColor(Channel(a.R, b.R), Channel(a.G, b.G), Channel(a.B, b.B));
         }
+        ProjectedSurfaceBounds = new Rect(minX, minY, maxX - minX, maxY - minY);
 
         // The shell is convex. Front-facing triangles partition its visible projection, so a
         // depth sort is unnecessary; avoiding it prevents a per-frame O(n log n) animation cost.

@@ -24,6 +24,16 @@ en: Reduce Windows companion graphics memory use and stop hidden Blob animation 
 - **Lower Windows graphics memory use**: HOOT now uses software rendering by default to avoid the native GPU memory growth observed with the animated companion on Intel graphics. The Blob's shape, colours, and optional 3D renderer are preserved. Memory savings vary by device and workload; larger previews may render more slowly. Set `FILEE_RENDERING=gpu` before starting HOOT to use the previous accelerated rendering defaults.
 - **Animation lifecycle**: Hidden, minimized, and animation-disabled Blobs stop their frame loops and resume when shown. Stale callbacks cannot start competing loops after a visibility change.
 
+## 3.0.2
+
+<!-- update
+level: recommended
+en: Stabilize the optional 3D Blob and edit existing selectable PDF text.
+-->
+
+- **3D companion stability**: Cursor gaze now moves the eyes without rotating or stretching the 3D shell. The shell still rotates during its explicit 360-degree turn animation.
+- **Edit existing PDF text**: The PDF Edit wheel now opens a text editor for selectable text objects already in a PDF. It writes to a working copy and exports with Save As, leaving the source untouched. Scanned text and paragraph reflow are not supported; longer replacements may not fit their original space, and editing a digitally signed PDF can invalidate its signatures.
+
 ## 3.0.0
 
 <!-- update

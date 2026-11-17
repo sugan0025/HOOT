@@ -1,0 +1,85 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Filee.App.ViewModels"
+        x:Class="Filee.App.Views.PdfTextEditorWindow"
+        x:DataType="vm:PdfTextEditorViewModel"
+        Title="{DynamicResource pdf_text_editor.title}"
+        Icon="avares://Hoot/Assets/Icons/filee.ico"
+        Width="1080" Height="760" MinWidth="780" MinHeight="560"
+        Opened="OnOpened" Closing="OnClosing" Closed="OnClosed"
+        WindowStartupLocation="CenterScreen">
+  <Grid RowDefinitions="Auto,*,Auto" Margin="20" RowSpacing="14">
+    <StackPanel Spacing="5">
+      <TextBlock Classes="h2" Text="{DynamicResource pdf_text_editor.title}" />
+      <TextBlock Classes="caption" TextWrapping="Wrap"
+                 Text="{DynamicResource pdf_text_editor.intro}" />
+    </StackPanel>
+
+    <Grid Grid.Row="1" ColumnDefinitions="270,10,*,10,320">
+      <Border Grid.Column="0" Background="{DynamicResource SurfaceAltBrush}" CornerRadius="8"
+              BorderBrush="{DynamicResource SubtleBorderBrush}" BorderThickness="1" Padding="12">
+        <Grid RowDefinitions="Auto,*,Auto">
+          <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto,Auto" ColumnSpacing="4" Margin="0,0,0,10">
+            <TextBlock Text="{Binding PageCounterText}" VerticalAlignment="Center" />
+            <TextBlock Grid.Column="1" Text="{Binding PageNumber}" VerticalAlignment="Center" />
+            <TextBlock Grid.Column="2" Text="of" VerticalAlignment="Center" />
+            <TextBlock Grid.Column="3" Text="{Binding PageCount}" VerticalAlignment="Center" />
+            <Button Grid.Column="4" Content="Previous" Padding="8,4"
+                    Command="{Binding PreviousPageCommand}" IsEnabled="{Binding !IsBusy}" />
+            <Button Grid.Column="5" Content="Next" Padding="8,4"
+                    Command="{Binding NextPageCommand}" IsEnabled="{Binding !IsBusy}" />
+          </Grid>
+          <ListBox Grid.Row="1" ItemsSource="{Binding Texts}" SelectedItem="{Binding SelectedText}"
+                   IsEnabled="{Binding !IsBusy}" Background="Transparent">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:PdfTextEntry">
+                <Border Padding="8" Margin="0,2" CornerRadius="5">
+                  <StackPanel Spacing="4">
+                    <TextBlock Text="{Binding Text}" TextWrapping="Wrap" MaxLines="4" />
+                    <TextBlock Classes="caption" Text="{Binding BoundsText}" />
+                  </StackPanel>
+                </Border>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+          <TextBlock Grid.Row="2" Classes="caption" Text="{DynamicResource pdf_text_editor.no_text}"
+                     Margin="3,8,3,0" TextWrapping="Wrap" IsVisible="{Binding !HasTexts}" />
+        </Grid>
+      </Border>
+
+      <Border Grid.Column="2" Background="{DynamicResource SurfaceAltBrush}" CornerRadius="8"
+              BorderBrush="{DynamicResource SubtleBorderBrush}" BorderThickness="1" Padding="12">
+        <Grid ClipToBounds="True">
+          <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+            <Image Source="{Binding PreviewImage}" Stretch="Uniform" IsVisible="{Binding HasPreview}"
+                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+          </ScrollViewer>
+          <TextBlock Text="{DynamicResource pdf_text_editor.loading}" Classes="caption" HorizontalAlignment="Center"
+                     VerticalAlignment="Center" IsVisible="{Binding IsBusy}" />
+        </Grid>
+      </Border>
+
+      <Border Grid.Column="4" Background="{DynamicResource SurfaceAltBrush}" CornerRadius="8"
+              BorderBrush="{DynamicResource SubtleBorderBrush}" BorderThickness="1" Padding="16">
+        <StackPanel Spacing="12">
+          <TextBlock FontWeight="SemiBold" Text="{DynamicResource pdf_text_editor.selected}" />
+          <TextBlock Classes="caption" Text="{DynamicResource pdf_text_editor.replacement}" />
+          <TextBox Text="{Binding ReplacementText, Mode=TwoWay}" AcceptsReturn="True" MinHeight="110"
+                   TextWrapping="Wrap" VerticalContentAlignment="Top" IsEnabled="{Binding !IsBusy}"
+                   AutomationProperties.Name="{DynamicResource pdf_text_editor.replacement}" />
+          <Button Classes="accent" Content="{DynamicResource pdf_text_editor.replace}"
+                  Command="{Binding ReplaceTextCommand}" IsEnabled="{Binding CanReplace}" />
+          <TextBlock Classes="caption" TextWrapping="Wrap"
+                     Text="{DynamicResource pdf_text_editor.limits}" />
+        </StackPanel>
+      </Border>
+    </Grid>
+
+    <Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+      <TextBlock Text="{Binding Status}" Classes="caption" VerticalAlignment="Center" TextWrapping="Wrap" />
+      <Button Grid.Column="1" Content="Cancel" Click="OnCancel" IsEnabled="{Binding !IsBusy}" />
+      <Button Grid.Column="2" Classes="accent" Content="{DynamicResource pdf_text_editor.save_as}" Click="OnSaveAs"
+              IsEnabled="{Binding !IsBusy}" />
+    </Grid>
+  </Grid>
+</Window>
