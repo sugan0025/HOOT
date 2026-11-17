@@ -57,7 +57,7 @@ public partial class BackFaceTests
     }
 
     [Fact]
-    public void Pdf_edit_is_one_back_slice_with_six_real_actions()
+    public void Pdf_edit_is_one_back_slice_with_seven_real_actions()
     {
         var presets = BuiltInData.CreatePresets().ToDictionary(p => p.Id);
         var pdf = BuiltIn("pdf");
@@ -67,9 +67,9 @@ public partial class BackFaceTests
         Assert.True(edit.IsGroup);
         Assert.Equal([
             "tool-pdf-crop", "pdf-rotate-left", "pdf-rotate-right",
-            "tool-pdf-pages", "pdf-split", "tool-pdf-add",
+            "tool-pdf-pages", "pdf-split", "tool-pdf-add", "tool-pdf-text",
         ], edit.SubPresetIds);
-        Assert.Equal(6, edit.SubPresetIds.Count);
+        Assert.Equal(7, edit.SubPresetIds.Count);
         Assert.All(edit.SubPresetIds, id => Assert.False(presets[id].IsGroup));
         Assert.All(edit.SubPresetIds.Where(id => id.StartsWith("tool-pdf-")), id => Assert.True(presets[id].IsTool));
     }
@@ -78,7 +78,7 @@ public partial class BackFaceTests
     public void Version_45_library_gets_pdf_edit_once_without_replacing_custom_back_slices()
     {
         var presets = BuiltInData.CreatePresets();
-        presets.RemoveAll(p => p.Id is "tool-pdf-crop" or "tool-pdf-pages" or "tool-pdf-add"
+        presets.RemoveAll(p => p.Id is "tool-pdf-crop" or "tool-pdf-pages" or "tool-pdf-add" or "tool-pdf-text"
             or "pdf-rotate-left" or "pdf-rotate-right" or "pdf-edit");
         var profiles = BuiltInData.CreateProfiles();
         var pdf = profiles.Single(p => p.Id == "pdf");
@@ -87,7 +87,7 @@ public partial class BackFaceTests
         Assert.True(SettingsMigrations.ApplyToLibrary(45, presets, profiles));
 
         Assert.Equal(["pdf-edit", "resizer-group", "to-html", "zip-all"], pdf.BackPresetIds);
-        Assert.All(new[] { "tool-pdf-crop", "tool-pdf-pages", "tool-pdf-add", "pdf-rotate-left", "pdf-rotate-right", "pdf-edit" },
+        Assert.All(new[] { "tool-pdf-crop", "tool-pdf-pages", "tool-pdf-add", "tool-pdf-text", "pdf-rotate-left", "pdf-rotate-right", "pdf-edit" },
             id => Assert.Single(presets, p => p.Id == id));
         Assert.False(SettingsMigrations.ApplyToLibrary(45, presets, profiles));
     }
