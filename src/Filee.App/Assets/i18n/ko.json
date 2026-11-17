@@ -517,8 +517,6 @@
   "general.language": "언어",
   "general.language_auto": "시스템 기본값",
   "general.blob_companion": "데스크톱 Blob 동반자",
-  "general.blob_3d": "3D Blob and animations",
-  "general.blob_3d_hint": "The original 2D Blob stays on by default. Enable this to use the 3D Blob, travel hop, and 360° turn.",
   "general.blob_activity": "Blob 활동",
   "general.blob_activity_calm": "차분함",
   "general.blob_activity_adaptive": "상황에 맞게",

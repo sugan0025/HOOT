@@ -89,25 +89,6 @@ public partial class UserDataStoreTests
     }
 
     [Fact]
-    public void Schema_81_adds_3d_companion_preference_with_original_2d_default()
-    {
-        using var dir = new TempDir();
-        File.WriteAllText(Path.Combine(dir.Path, "settings.json"),
-            """{"schemaVersion":81,"blobCompanion":{"isVisible":true}}""");
-
-        var store = new UserDataStore(dir.Path);
-        store.Load();
-
-        Assert.Equal(83, store.Settings.SchemaVersion);
-        Assert.False(store.Settings.BlobCompanion.Use3DRenderer);
-        store.Settings.BlobCompanion.Use3DRenderer = true;
-        store.SaveSettings();
-        var reloaded = new UserDataStore(dir.Path);
-        reloaded.Load();
-        Assert.True(reloaded.Settings.BlobCompanion.Use3DRenderer);
-    }
-
-    [Fact]
     public void Schema_79_adds_hoot_quip_rule_without_replacing_existing_app_rules()
     {
         using var dir = new TempDir();

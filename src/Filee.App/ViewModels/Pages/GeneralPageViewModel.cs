@@ -45,7 +45,6 @@ public sealed partial class GeneralPageViewModel : ObservableObject, IDisposable
         ];
         _blobActivity = BlobActivityChoices.First(c => c.Value == store.Settings.BlobCompanion.Activity);
         _blobCompanionEnabled = store.Settings.BlobCompanion.IsVisible;
-        _blob3DEnabled = store.Settings.BlobCompanion.Use3DRenderer;
         _blobAudioEnabled = store.Settings.BlobCompanion.AudioEnabled;
         _cinemaDimEnabled = store.Settings.BlobCompanion.CinemaDimEnabled;
         _stretchReminderEnabled = store.Settings.BlobCompanion.StretchReminderEnabled;
@@ -174,7 +173,6 @@ public sealed partial class GeneralPageViewModel : ObservableObject, IDisposable
             _restoringBlobCompanion = false;
         }
         _restoringBlobCompanion = true;
-        Blob3DEnabled = _store.Settings.BlobCompanion.Use3DRenderer;
         CinemaDimEnabled = _store.Settings.BlobCompanion.CinemaDimEnabled;
         StretchReminderEnabled = _store.Settings.BlobCompanion.StretchReminderEnabled;
         PowerReactionsEnabled = _store.Settings.BlobCompanion.PowerReactionsEnabled;
@@ -196,7 +194,6 @@ public sealed partial class GeneralPageViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _soundEffects;
     [ObservableProperty] private Choice<BlobCompanionActivity> _blobActivity;
     [ObservableProperty] private bool _blobCompanionEnabled;
-    [ObservableProperty] private bool _blob3DEnabled;
     [ObservableProperty] private bool _blobAudioEnabled;
     [ObservableProperty] private bool _cinemaDimEnabled;
     [ObservableProperty] private bool _stretchReminderEnabled;
@@ -322,10 +319,6 @@ public sealed partial class GeneralPageViewModel : ObservableObject, IDisposable
         if (!_restoringBlobCompanion) Save(s => s.BlobCompanion.WindowReactionsEnabled = value);
     }
     private bool _restoringBlobCompanion;
-    partial void OnBlob3DEnabledChanged(bool value)
-    {
-        if (!_restoringBlobCompanion) Save(s => s.BlobCompanion.Use3DRenderer = value);
-    }
     partial void OnBlobCompanionEnabledChanged(bool value)
     {
         if (!_restoringBlobCompanion)

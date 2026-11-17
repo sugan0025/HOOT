@@ -47,8 +47,6 @@
         <TextBlock Classes="h2" Text="{DynamicResource general.blob_companion}" />
         <StackPanel Spacing="8" IsVisible="{Binding IsWindows}">
           <ToggleSwitch Content="{DynamicResource general.blob_companion}" IsChecked="{Binding BlobCompanionEnabled}" />
-          <ToggleSwitch Content="{DynamicResource general.blob_3d}" IsChecked="{Binding Blob3DEnabled}" IsEnabled="{Binding BlobCompanionEnabled}" />
-          <TextBlock Classes="caption" Text="{DynamicResource general.blob_3d_hint}" TextWrapping="Wrap" />
           <TextBlock Classes="label" Text="{DynamicResource general.blob_activity}" />
           <ComboBox ItemsSource="{Binding BlobActivityChoices}" SelectedItem="{Binding BlobActivity}" MinWidth="240" AutomationProperties.Name="{DynamicResource general.blob_activity}" />
           <ToggleSwitch Content="{DynamicResource general.blob_audio}" IsChecked="{Binding BlobAudioEnabled}" />

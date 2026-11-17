@@ -331,9 +331,6 @@ public sealed class BlobCompanionSettings
     /// <summary>The companion is shown when Filee starts.</summary>
     public bool IsVisible { get; set; } = true;
 
-    /// <summary>Use the optional 3D companion renderer and its 3D-only idle animations. Defaults to the original 2D Blob.</summary>
-    public bool Use3DRenderer { get; set; }
-
     /// <summary>Last position in physical screen pixels; null uses a safe default position.</summary>
     public int? X { get; set; }
     public int? Y { get; set; }

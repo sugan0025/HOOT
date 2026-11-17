@@ -516,8 +516,6 @@
   "general.language": "भाषा",
   "general.language_auto": "प्रणाली पूर्वनिर्धारित",
   "general.blob_companion": "डेस्कटप Blob साथी",
-  "general.blob_3d": "3D Blob and animations",
-  "general.blob_3d_hint": "The original 2D Blob stays on by default. Enable this to use the 3D Blob, travel hop, and 360° turn.",
   "general.blob_activity": "Blob गतिविधि",
   "general.blob_activity_calm": "शान्त",
   "general.blob_activity_adaptive": "अनुकूल",

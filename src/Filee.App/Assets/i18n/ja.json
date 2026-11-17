@@ -516,8 +516,6 @@
   "general.language": "言語",
   "general.language_auto": "システム設定に合わせる",
   "general.blob_companion": "デスクトップのBlobコンパニオン",
-  "general.blob_3d": "3D Blob and animations",
-  "general.blob_3d_hint": "The original 2D Blob stays on by default. Enable this to use the 3D Blob, travel hop, and 360° turn.",
   "general.blob_activity": "Blobの動き",
   "general.blob_activity_calm": "おだやか",
   "general.blob_activity_adaptive": "状況に応じて",
