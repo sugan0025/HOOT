@@ -46,8 +46,8 @@ public partial class UserDataStoreTests
         var store = new UserDataStore(dir.Path);
         store.Load();
 
-        Assert.Equal(82, AppSettings.CurrentSchemaVersion);
-        Assert.Equal(82, store.Settings.SchemaVersion);
+        Assert.Equal(83, AppSettings.CurrentSchemaVersion);
+        Assert.Equal(83, store.Settings.SchemaVersion);
         Assert.Equal("ja", store.Settings.Language);
         Assert.False(store.Settings.StartWithSystem);
         Assert.True(store.Settings.Paused);
@@ -59,7 +59,7 @@ public partial class UserDataStoreTests
         Assert.True(store.Settings.BlobCompanion.AppAwareness.Enabled);
 
         var saved = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(Path.Combine(dir.Path, "settings.json")))!;
-        Assert.Equal(82, (int)saved["schemaVersion"]!);
+        Assert.Equal(83, (int)saved["schemaVersion"]!);
         Assert.Equal("ja", (string)saved["language"]!);
         Assert.True((bool)saved["paused"]!);
         Assert.True((bool)saved["blobCompanion"]!["isVisible"]!);
@@ -98,7 +98,7 @@ public partial class UserDataStoreTests
         var store = new UserDataStore(dir.Path);
         store.Load();
 
-        Assert.Equal(82, store.Settings.SchemaVersion);
+        Assert.Equal(83, store.Settings.SchemaVersion);
         Assert.False(store.Settings.BlobCompanion.Use3DRenderer);
         store.Settings.BlobCompanion.Use3DRenderer = true;
         store.SaveSettings();
@@ -128,12 +128,28 @@ public partial class UserDataStoreTests
         var store = new UserDataStore(dir.Path);
         store.Load();
 
-        Assert.Equal(82, store.Settings.SchemaVersion);
+        Assert.Equal(83, store.Settings.SchemaVersion);
         Assert.Contains("claude", store.Settings.BlobCompanion.AppAwareness.EnabledApps);
         Assert.Contains("chatgpt", store.Settings.BlobCompanion.AppAwareness.EnabledApps);
         Assert.Contains("hoot", store.Settings.BlobCompanion.AppAwareness.EnabledApps);
         Assert.Contains("youtube", store.Settings.BlobCompanion.AppAwareness.EnabledApps);
         Assert.Contains("windows-media-player", store.Settings.BlobCompanion.AppAwareness.EnabledApps);
+    }
+
+    [Fact]
+    public void Schema_82_adds_pdf_text_editor_to_library_and_existing_edit_group_without_reordering_custom_tools()
+    {
+        var presets = BuiltInData.CreatePresets();
+        presets.RemoveAll(p => p.Id == "tool-pdf-text");
+        var group = presets.Single(p => p.Id == "pdf-edit");
+        group.SubPresetIds = ["custom-tool", "tool-pdf-pages"];
+        var profiles = BuiltInData.CreateProfiles();
+
+        Assert.True(SettingsMigrations.ApplyToLibrary(82, presets, profiles));
+
+        Assert.Contains(presets, p => p.Id == "tool-pdf-text");
+        Assert.Equal(["custom-tool", "tool-pdf-pages", "tool-pdf-text"], group.SubPresetIds);
+        Assert.False(SettingsMigrations.ApplyToLibrary(82, presets, profiles));
     }
 
     [Fact]

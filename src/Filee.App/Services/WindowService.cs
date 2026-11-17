@@ -107,6 +107,7 @@ public sealed class WindowService(ILocalizer loc, IServiceProvider services, Mem
     private MergeOrderWindow? _mergeOrder;
 
     private PdfPageEditorWindow? _pdfPageEditor;
+    private PdfTextEditorWindow? _pdfTextEditor;
 
 
 
@@ -400,6 +401,10 @@ public sealed class WindowService(ILocalizer loc, IServiceProvider services, Mem
         else if (preset.Id == "tool-pdf-add")
 
             ShowPdfPageEditor(files, preset, addPages: true);
+
+        else if (preset.Id == "tool-pdf-text")
+
+            ShowPdfTextEditor(files);
 
         else if (preset.IsCropTool)
 
@@ -810,6 +815,50 @@ public sealed class WindowService(ILocalizer loc, IServiceProvider services, Mem
 
         win.Activate();
 
+    }
+
+
+    /// <summary>Opens the existing-text editor for one PDF, preserving the input until the user chooses Save As.</summary>
+    public void ShowPdfTextEditor(IReadOnlyList<string> files)
+    {
+        var file = files.FirstOrDefault(path => Path.GetExtension(path).Equals(".pdf", StringComparison.OrdinalIgnoreCase));
+        if (file is null)
+        {
+            _ = MessageAsync(null, loc["pdf_text_editor.choose_pdf"]);
+            return;
+        }
+
+        if (_pdfTextEditor is { } existing)
+        {
+            if (existing.DataContext is PdfTextEditorViewModel { IsBusy: true })
+            {
+                existing.Activate();
+                return;
+            }
+            existing.Close();
+        }
+        var log = services.GetService<ILogger<PdfTextEditorViewModel>>();
+        PdfTextEditorViewModel vm;
+        try
+        {
+            vm = new PdfTextEditorViewModel(file, loc, log);
+        }
+        catch (Exception ex) when (ex is not OutOfMemoryException)
+        {
+            log?.LogWarning(ex, "Could not open PDF text editor for {File}", Path.GetFileName(file));
+            _ = MessageAsync(null, ex.Message);
+            return;
+        }
+        var win = new PdfTextEditorWindow { DataContext = vm };
+        PrepareWindow(win);
+        win.Closed += (_, _) =>
+        {
+            if (_pdfTextEditor == win)
+                _pdfTextEditor = null;
+        };
+        _pdfTextEditor = win;
+        win.Show();
+        win.Activate();
     }
 
 

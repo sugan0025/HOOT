@@ -28,10 +28,11 @@ en: Reduce Windows companion graphics memory use and stop hidden Blob animation 
 
 <!-- update
 level: recommended
-en: Prevent the optional 3D Blob from deforming as it looks around.
+en: Stabilize the optional 3D Blob and edit existing selectable PDF text.
 -->
 
 - **3D companion stability**: Cursor gaze now moves the eyes without rotating or stretching the 3D shell. The shell still rotates during its explicit 360-degree turn animation.
+- **Edit existing PDF text**: The PDF Edit wheel now opens a text editor for selectable text objects already in a PDF. It writes to a working copy and exports with Save As, leaving the source untouched. Scanned text and paragraph reflow are not supported; longer replacements may not fit their original space, and editing a digitally signed PDF can invalidate its signatures.
 
 ## 3.0.0
 
