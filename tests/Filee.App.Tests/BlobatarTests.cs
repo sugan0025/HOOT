@@ -60,62 +60,6 @@ public class BlobatarTests
     }
 
     [AvaloniaFact]
-    public void Three_d_renderer_is_opt_in_and_local_to_the_selected_control()
-    {
-        var regularBlob = new BlobatarControl();
-        var companionBlob = new BlobatarControl();
-
-        Assert.False(regularBlob.Use3DRenderer);
-        Assert.False(regularBlob.State.DepthPreview);
-        companionBlob.Use3DRenderer = true;
-        Assert.True(companionBlob.State.DepthPreview);
-        Assert.False(regularBlob.State.DepthPreview);
-
-        companionBlob.SetMeshSpin(Math.PI);
-        Assert.Equal(Math.PI, companionBlob.State.MeshSpin, 6);
-        companionBlob.Use3DRenderer = false;
-        Assert.False(companionBlob.State.DepthPreview);
-        Assert.Equal(0, companionBlob.State.MeshSpin);
-    }
-
-    [Fact]
-    public void Three_d_surface_does_not_rotate_with_cursor_gaze()
-    {
-        var state = new BlobatarState { CompanionMode = true, DepthPreview = true };
-        state.LookAtCursor(new Point(0, 50));
-        for (var i = 0; i < 30; i++) state.Update(1 / 60.0);
-        var leftGazeRotation = BlobMesh.SurfaceRotation(state);
-        var leftGaze = state.GazeX;
-
-        state.LookAtCursor(new Point(100, 50));
-        for (var i = 0; i < 30; i++) state.Update(1 / 60.0);
-        var rightGazeRotation = BlobMesh.SurfaceRotation(state);
-
-        Assert.True(leftGaze < 0);
-        Assert.True(state.GazeX > 0);
-        Assert.Equal(leftGazeRotation, rightGazeRotation);
-    }
-
-    [Fact]
-    public void Three_d_mesh_stays_inside_its_viewbox_during_gaze_and_turn_animation()
-    {
-        var state = new BlobatarState { CompanionMode = true, DepthPreview = true };
-
-        foreach (var angle in new[] { 0.0, Math.PI / 2, Math.PI, Math.PI * 1.5, Math.Tau })
-        {
-            state.MeshSpin = angle;
-            state.LookAtCursor(new Point(angle < Math.PI ? 2 : 98, angle < Math.PI ? 4 : 96));
-            for (var i = 0; i < 8; i++) state.Update(1 / 60.0);
-
-            var bounds = new BlobMesh(state).ProjectedSurfaceBounds;
-            Assert.True(bounds.Left >= 0, $"Mesh left edge clipped at {angle}: {bounds}");
-            Assert.True(bounds.Top >= 0, $"Mesh top edge clipped at {angle}: {bounds}");
-            Assert.True(bounds.Right <= 100, $"Mesh right edge clipped at {angle}: {bounds}");
-            Assert.True(bounds.Bottom <= 100, $"Mesh bottom edge clipped at {angle}: {bounds}");
-        }
-    }
-
-    [AvaloniaFact]
     public void Companion_window_loads_the_existing_blob_control()
     {
         TestServices.EnsureInitialized();

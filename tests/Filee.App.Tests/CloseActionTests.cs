@@ -161,7 +161,6 @@ public class CloseActionTests
         var store = AppHost.Get<UserDataStore>();
         var originalVisibility = store.Settings.BlobCompanion.IsVisible;
         var originalActivity = store.Settings.BlobCompanion.Activity;
-        var original3D = store.Settings.BlobCompanion.Use3DRenderer;
         using var page = new GeneralPageViewModel(store, AppHost.Get<ILocalizer>(), AppHost.Get<IPlatformServices>(),
             NullLogger<GeneralPageViewModel>.Instance);
         try
@@ -169,12 +168,8 @@ public class CloseActionTests
             page.BlobCompanionEnabled = !originalVisibility;
             Assert.Equal(!originalVisibility, store.Settings.BlobCompanion.IsVisible);
             Assert.Equal(originalActivity, store.Settings.BlobCompanion.Activity);
-            Assert.Equal(original3D, page.Blob3DEnabled);
-            page.Blob3DEnabled = !original3D;
-            Assert.Equal(!original3D, store.Settings.BlobCompanion.Use3DRenderer);
 
             store.Settings.BlobCompanion.IsVisible = originalVisibility;
-            store.Settings.BlobCompanion.Use3DRenderer = original3D;
             store.SaveSettings();
             Assert.Equal(originalVisibility, page.BlobCompanionEnabled);
         }
@@ -182,7 +177,6 @@ public class CloseActionTests
         {
             store.Settings.BlobCompanion.IsVisible = originalVisibility;
             store.Settings.BlobCompanion.Activity = originalActivity;
-            store.Settings.BlobCompanion.Use3DRenderer = original3D;
             store.SaveSettings();
         }
     }

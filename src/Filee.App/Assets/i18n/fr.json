@@ -517,8 +517,6 @@
   "general.language": "Langue",
   "general.language_auto": "Langue du système",
   "general.blob_companion": "Compagnon Blob sur le bureau",
-  "general.blob_3d": "3D Blob and animations",
-  "general.blob_3d_hint": "The original 2D Blob stays on by default. Enable this to use the 3D Blob, travel hop, and 360° turn.",
   "general.blob_activity": "Activité de Blob",
   "general.blob_activity_calm": "Calme",
   "general.blob_activity_adaptive": "Adaptatif",

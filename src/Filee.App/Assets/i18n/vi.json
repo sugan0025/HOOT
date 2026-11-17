@@ -516,8 +516,6 @@
   "general.language": "Ngôn ngữ",
   "general.language_auto": "Mặc định của hệ thống",
   "general.blob_companion": "Bạn đồng hành Blob trên màn hình",
-  "general.blob_3d": "3D Blob and animations",
-  "general.blob_3d_hint": "The original 2D Blob stays on by default. Enable this to use the 3D Blob, travel hop, and 360° turn.",
   "general.blob_activity": "Hoạt động của Blob",
   "general.blob_activity_calm": "Bình tĩnh",
   "general.blob_activity_adaptive": "Thích ứng",

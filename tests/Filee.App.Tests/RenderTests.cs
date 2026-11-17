@@ -25,25 +25,6 @@ namespace Filee.App.Tests;
 
 public class RenderTests
 {
-    [AvaloniaFact]
-    public void Companion_3d_renderer_draws_the_production_mesh_path()
-    {
-        TestServices.EnsureInitialized("en");
-        var window = new BlobCompanionWindow(AppHost.Get<RadialController>(), AppHost.Get<TriggerService>());
-        try
-        {
-            var blob = window.FindControl<BlobatarControl>("Blob")!;
-            blob.Use3DRenderer = true;
-            window.Show();
-            Pump();
-            Save(window, "companion-3d-renderer.png");
-        }
-        finally
-        {
-            window.Close();
-        }
-    }
-
     public static TheoryData<string, string> Pages => new()
     {
         { "home", "id" }, { "general", "id" }, { "triggers", "id" }, { "toolbar", "id" },

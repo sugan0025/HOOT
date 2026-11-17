@@ -516,8 +516,6 @@
   "general.language": "اللغة",
   "general.language_auto": "لغة النظام",
   "general.blob_companion": "رفيق Blob على سطح المكتب",
-  "general.blob_3d": "3D Blob and animations",
-  "general.blob_3d_hint": "The original 2D Blob stays on by default. Enable this to use the 3D Blob, travel hop, and 360° turn.",
   "general.blob_activity": "نشاط Blob",
   "general.blob_activity_calm": "هادئ",
   "general.blob_activity_adaptive": "متكيف",

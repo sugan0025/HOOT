@@ -509,10 +509,6 @@ internal static class SettingsMigrations
             }
         }
 
-        // v82: add the opt-in 3D companion renderer. Missing values retain the original 2D Blob default.
-        if (settings.SchemaVersion < 82)
-            settings.BlobCompanion ??= new BlobCompanionSettings();
-
         if (settings.Triggers.Count == 0)
             settings.Triggers = TriggerGesture.Defaults();
 

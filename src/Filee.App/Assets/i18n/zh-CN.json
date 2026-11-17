@@ -517,8 +517,6 @@
   "general.language": "语言",
   "general.language_auto": "跟随系统",
   "general.blob_companion": "桌面 Blob 伙伴",
-  "general.blob_3d": "3D Blob and animations",
-  "general.blob_3d_hint": "The original 2D Blob stays on by default. Enable this to use the 3D Blob, travel hop, and 360° turn.",
   "general.blob_activity": "Blob 活动",
   "general.blob_activity_calm": "平静",
   "general.blob_activity_adaptive": "自适应",

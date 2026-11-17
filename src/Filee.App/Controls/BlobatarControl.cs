@@ -32,17 +32,12 @@ public class BlobatarControl : Control
     public static readonly StyledProperty<int> MaxFramesPerSecondProperty =
         AvaloniaProperty.Register<BlobatarControl, int>(nameof(MaxFramesPerSecond), 0);
 
-    /// <summary>Uses the companion-only 3D shell renderer. Main-window and radial Blobs leave this disabled.</summary>
-    public static readonly StyledProperty<bool> Use3DRendererProperty =
-        AvaloniaProperty.Register<BlobatarControl, bool>(nameof(Use3DRenderer), false);
-
     public BlobatarTone Tone { get => GetValue(ToneProperty); set => SetValue(ToneProperty, value); }
     public bool TrackWindowPointer { get => GetValue(TrackWindowPointerProperty); set => SetValue(TrackWindowPointerProperty, value); }
     public bool IsAnimated { get => GetValue(IsAnimatedProperty); set => SetValue(IsAnimatedProperty, value); }
     public bool PointerReactionsEnabled { get => GetValue(PointerReactionsEnabledProperty); set => SetValue(PointerReactionsEnabledProperty, value); }
     public bool AudioEnabled { get => GetValue(AudioEnabledProperty); set => SetValue(AudioEnabledProperty, value); }
     public int MaxFramesPerSecond { get => GetValue(MaxFramesPerSecondProperty); set => SetValue(MaxFramesPerSecondProperty, value); }
-    public bool Use3DRenderer { get => GetValue(Use3DRendererProperty); set => SetValue(Use3DRendererProperty, value); }
     private float _mouthOpen;
     public float MouthOpen => _mouthOpen;
 
@@ -99,12 +94,6 @@ public class BlobatarControl : Control
     public void TriggerBoredHop() { State.TriggerBoredHop(); StartLoop(); }
     public void CancelBoredHop() { State.CancelBoredHop(); StartLoop(); }
     public void TriggerStretch() { State.TriggerStretch(); StartLoop(); }
-    public void SetMeshSpin(double radians)
-    {
-        State.MeshSpin = Use3DRenderer ? Math.Clamp(radians, 0, Math.Tau) : 0;
-        StartLoop();
-        InvalidateVisual();
-    }
     public void PressForReaction() { State.Press(); StartLoop(); }
     public void ReleaseForReaction() { State.Release(); StartLoop(); }
 
@@ -122,13 +111,6 @@ public class BlobatarControl : Control
         else if (change.Property == AudioEnabledProperty)
         {
             State.AudioEnabled = change.GetNewValue<bool>();
-        }
-        else if (change.Property == Use3DRendererProperty)
-        {
-            State.DepthPreview = change.GetNewValue<bool>();
-            if (!State.DepthPreview) State.MeshSpin = 0;
-            StartLoop();
-            InvalidateVisual();
         }
         else if (change.Property == IsAnimatedProperty || change.Property == IsVisibleProperty)
             RefreshAnimationLoop();
