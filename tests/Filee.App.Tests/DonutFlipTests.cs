@@ -1193,7 +1193,7 @@ public class DonutFlipTests
         }
     }, language);
 
-    /// <summary>The PDF back face exposes Edit as a slice, then fans its six tools out around that slice.</summary>
+    /// <summary>The PDF back face exposes Edit as a slice, then fans its seven tools out around that slice.</summary>
     [AvaloniaFact]
     public void The_pdf_edit_group_renders_as_a_subring() => With(animations: false, back: null, () =>
     {
@@ -1207,7 +1207,7 @@ public class DonutFlipTests
             Assert.True(donut.HandleKey(Key.Tab));
             Assert.True(vm.IsBackFace);
             Assert.Equal("pdf-edit", vm.Items[0].Id);
-            Assert.Equal(6, vm.Items[0].Children!.Count);
+            Assert.Equal(7, vm.Items[0].Children!.Count);
 
             donut.SetExternalHit(new DonutHit(DonutHitKind.Segment, 0));
             donut.ExpandPendingGroup();
