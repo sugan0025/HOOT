@@ -32,6 +32,9 @@ internal sealed class HSection
     /// <summary>Restart page numbering at this number; null continues from the previous section.</summary>
     public int? StartPageNumber { get; set; }
 
+    /// <summary>A header taller than the room above the body moves the body down (Word, unless its top margin is negative).</summary>
+    public bool HeaderMovesBody { get; set; }
+
     public List<HBlock> Blocks { get; } = [];
 }
 
@@ -66,6 +69,9 @@ internal sealed class HHeaderFooter(HPageType pages)
 {
     public HPageType Pages { get; } = pages;
     public List<HBlock> Blocks { get; } = [];
+
+    /// <summary>Starts on the page of this paragraph of the section (DOCX continuous section break); null = its first page.</summary>
+    public HParagraph? StartsAt { get; set; }
 }
 
 // ───────────────────────── Blocks ─────────────────────────
@@ -361,6 +367,8 @@ internal readonly record struct HLineSpacing(HLineSpacingKind Kind, int Value);
 /// <paramref name="Left"/> and <paramref name="Right"/> then name the start and the end side, as Word's w:bidi
 /// paragraphs do (Left aligns to the right edge). Written to DOCX only; HWPX has no right-to-left paragraphs.
 /// </param>
+/// <param name="LeftBar">A line down the paragraph's left side (a block quote), joined up with the next paragraph's.</param>
+/// <param name="Fill">Background colour behind the paragraph ("#RRGGBB").</param>
 internal readonly record struct HParaFormat(
     HAlign? Align = null,
     int? Left = null,
@@ -374,6 +382,8 @@ internal readonly record struct HParaFormat(
     bool? WidowOrphan = null,
     IReadOnlyList<HTabStop>? Tabs = null,
     bool? RightToLeft = null,
+    HBorder? LeftBar = null,
+    string? Fill = null,
     HBorders? Borders = null,
     HInsets? BorderOffsets = null)
 {
@@ -384,12 +394,12 @@ internal readonly record struct HParaFormat(
         Align == other.Align && Left == other.Left && Right == other.Right && FirstLine == other.FirstLine &&
         Before == other.Before && After == other.After && LineSpacing == other.LineSpacing &&
         KeepWithNext == other.KeepWithNext && KeepLines == other.KeepLines && WidowOrphan == other.WidowOrphan &&
-        RightToLeft == other.RightToLeft && Borders == other.Borders &&
+        RightToLeft == other.RightToLeft && LeftBar == other.LeftBar && Fill == other.Fill && Borders == other.Borders &&
         BorderOffsets == other.BorderOffsets && (Tabs ?? []).SequenceEqual(other.Tabs ?? []);
 
     public override int GetHashCode() =>
-        HashCode.Combine(Align, Left, Right, FirstLine, Before, After, LineSpacing,
-            HashCode.Combine(KeepWithNext, KeepLines, WidowOrphan, RightToLeft, Borders, BorderOffsets, Tabs?.Count ?? 0));
+        HashCode.Combine(HashCode.Combine(Align, Left, Right, FirstLine, Before, After, LineSpacing),
+            HashCode.Combine(KeepWithNext, KeepLines, WidowOrphan, RightToLeft, LeftBar, Fill), Borders, BorderOffsets, Tabs?.Count ?? 0);
 }
 
 internal enum HTabKind
