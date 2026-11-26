@@ -54,6 +54,8 @@ internal sealed partial class HwpxWriter
         var paperHeight = (int?)pagePr?.Attribute("height") ?? 84190;
         var landscape = (string?)pagePr?.Attribute("landscape") == "NARROWLY";
         var textWidth = Math.Max(2000, (landscape ? paperHeight : paperWidth) - Margin("left", 7200) - Margin("right", 7200) - Margin("gutter", 0));
+        _base = (_normalStyleId, _normalParaPrId, _normalCharPrId);
+        var headers = section.Headers.Select(h => (Header: h, Blocks: PdfHeaderBlocks(h.Blocks, textWidth))).ToList();
         _pageLeft = Margin("left", 7200) + Margin("gutter", 0);
         _pageTop = Margin("top", 4255) + Margin("header", 4250);
 
@@ -61,11 +63,10 @@ internal sealed partial class HwpxWriter
         setup.Append(Inner(secPr));
         setup.Append("<hp:ctrl>").Append(ColumnDefinition(section.Columns)).Append("</hp:ctrl>");
 
-        _base = (_normalStyleId, _normalParaPrId, _normalCharPrId);
         _width = textWidth;
         var controlId = 1;
-        foreach (var header in section.Headers)
-            setup.Append(HeaderFooter("header", header, controlId++, textWidth, Margin("header", 4250), "TOP"));
+        foreach (var (header, headerBlocks) in headers)
+            setup.Append(HeaderFooter("header", header, controlId++, textWidth, Margin("header", 4250), "TOP", headerBlocks));
         foreach (var footer in section.Footers)
             setup.Append(HeaderFooter("footer", footer, controlId++, textWidth, Margin("footer", 2240), "BOTTOM"));
 
@@ -92,7 +93,8 @@ internal sealed partial class HwpxWriter
         return $"<hp:colPr id=\"\" type=\"NEWSPAPER\" layout=\"LEFT\" colCount=\"{Math.Max(1, columns.Count)}\" sameSz=\"1\" sameGap=\"{(columns.Count > 1 ? columns.Gap : 0)}\">{line}</hp:colPr>";
     }
 
-    private string HeaderFooter(string kind, HHeaderFooter item, int id, int textWidth, int textHeight, string verticalAlign)
+    private string HeaderFooter(string kind, HHeaderFooter item, int id, int textWidth, int textHeight, string verticalAlign,
+        List<HBlock>? blocks = null)
     {
         var pages = item.Pages switch
         {
@@ -101,8 +103,61 @@ internal sealed partial class HwpxWriter
             _ => "BOTH",
         };
         return $"<hp:ctrl><hp:{kind} id=\"{id}\" applyPageType=\"{pages}\">" +
-               SubList(item.Blocks, verticalAlign, textWidth, textHeight) +
+               SubList(blocks ?? item.Blocks, verticalAlign, textWidth, textHeight) +
                $"</hp:{kind}></hp:ctrl>";
+    }
+
+    private List<HBlock> PdfHeaderBlocks(List<HBlock> blocks, int width) =>
+        _rhwpPdf ? blocks.SelectMany(block => PdfHeaderBlock(block, width)).ToList() : blocks;
+
+    // rhwp omits paragraph borders in headers. A cell border follows the rendered text even when the header wraps.
+    private static IEnumerable<HBlock> PdfHeaderBlock(HBlock block, int width)
+    {
+        if (block is not HParagraph { List: null, Format.Borders: { } borders } paragraph ||
+            borders != HBorders.Empty with { Bottom = borders.Bottom } || borders.Bottom.Style == HBorderStyle.None)
+        {
+            yield return block;
+            yield break;
+        }
+
+        var format = paragraph.Format;
+        var left = format.Left ?? 0;
+        var right = format.Right ?? 0;
+        if (left < 0 || right < 0 || (long)left + right > width - 4000)
+        {
+            yield return block;
+            yield break;
+        }
+
+        var text = new HParagraph
+        {
+            Format = format with { Left = 0, Right = 0, After = 0, Borders = null, BorderOffsets = null },
+            HeadingLevel = paragraph.HeadingLevel,
+            MarkFormat = paragraph.MarkFormat,
+        };
+        text.Inlines.AddRange(paragraph.Inlines);
+        var cell = new HCell { Borders = borders };
+        cell.Blocks.Add(text);
+        var row = new HRow();
+        row.Cells.Add(cell);
+        var table = new HTable
+        {
+            ColumnCount = 1,
+            ColumnWidths = [width - left - right],
+            Indent = left,
+            CellMargin = new HInsets(0, 0, 0, format.BorderOffsets?.Bottom ?? 0),
+            Borders = HBorders.Empty,
+            Tight = true,
+        };
+        table.Rows.Add(row);
+        yield return table;
+
+        if (format.After is > 0 and var after)
+            yield return new HParagraph
+            {
+                Format = new HParaFormat(Before: 0, After: 0, LineSpacing: new HLineSpacing(HLineSpacingKind.Fixed, after)),
+                MarkFormat = new HCharFormat(Size: 100),
+            };
     }
 
     /// <summary>Paragraph list of a header, footer, cell, text box or note.</summary>

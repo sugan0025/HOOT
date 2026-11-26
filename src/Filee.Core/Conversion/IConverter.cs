@@ -150,7 +150,11 @@ public sealed record ConversionStep(
     bool LivePhoto = false,
     Action<IReadOnlyList<string>>? MissingFonts = null,
     string? OriginalSourcePath = null,
-    bool Caption = false);
+    bool Caption = false)
+{
+    /// <summary>The converter that will consume this step's output, if the route continues.</summary>
+    public string? NextConverterId { get; init; }
+}
 
 /// <summary>
 /// A conversion engine (ImageMagick, LibreOffice, rhwp, ...).

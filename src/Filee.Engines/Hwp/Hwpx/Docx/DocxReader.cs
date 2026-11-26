@@ -344,6 +344,10 @@ internal sealed partial class DocxReader
         paragraph.Format = paragraph.Format with { LineSpacing = new HLineSpacing(HLineSpacingKind.AtLeast, (int)Math.Round(lines * cell * multiple)) };
     }
 
+    private sealed record ParagraphBorderGroup(HBorders Borders, HInsets? Offsets, HBorder Between);
+
+    /// <summary>Original resolved borders, before joining two paragraphs changes their edges.</summary>
+    private readonly Dictionary<HParagraph, ParagraphBorderGroup?> _paragraphBorderGroups = [];
     private static int? MaxFontSize(IEnumerable<HInline> inlines)
     {
         int? max = null;
@@ -484,8 +488,11 @@ internal sealed partial class DocxReader
         private void Emit()
         {
             _reader.SnapToGrid(Current, _props);
+            var group = Current.Format.Borders is { } borders
+                ? new ParagraphBorderGroup(borders, Current.Format.BorderOffsets, ParagraphBorder(_props.BorderBetween)) : null;
             if (_output.LastOrDefault() is HParagraph previous)
-                JoinBorders(previous, Current);
+                _reader.JoinBorders(previous, Current, group);
+            _reader._paragraphBorderGroups[Current] = group;
             _output.Add(Current);
         }
 
