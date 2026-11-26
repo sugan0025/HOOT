@@ -216,6 +216,13 @@
   "engine.font.description": "Преобразует TTF, OTF, WOFF, WOFF2 и EOT друг в друга; преобразует растровые шрифты Windows (FON) в эти форматы.",
   "engine.cad.name": "CAD (built-in)",
   "engine.cad.description": "Чертежи AutoCAD: DWG ↔ DXF, и оба — в PDF, SVG и PNG.",
+<<<<<<< HEAD
+=======
+  "engine.gcode.name": "G-code (built-in)",
+  "engine.gcode.description": "Траектории 3D-принтеров и станков с ЧПУ (G-code) в PDF, SVG и изображения или превью слайсера.",
+  "engine.slides-md.name": "Слайды в Markdown (built-in)",
+  "engine.slides-md.description": "Слайды PowerPoint (PPTX, PPTM, POTX, PPSX) в Markdown, по разделу на слайд: заголовки, списки, таблицы, изображения и заметки докладчика, готово для reveal.js.",
+>>>>>>> d71ede58 (feat(slides): write PowerPoint slides as reveal.js Markdown)
   "engine.model3d.name": "3D models (built-in)",
   "engine.model3d.description": "3D-модели: GLB, glTF, STL, OBJ, 3MF и PLY друг в друга, FBX — в любой из них, плюс превью в PNG.",
   "engine.geo.name": "Geospatial vector data (built-in)",

@@ -215,6 +215,13 @@
   "engine.font.description": "แปลง TTF, OTF, WOFF, WOFF2 และ EOT ระหว่างกัน; แปลงฟอนต์บิตแมปของ Windows (FON) เป็นรูปแบบเหล่านี้ด้วย",
   "engine.cad.name": "CAD (built-in)",
   "engine.cad.description": "แบบแปลน AutoCAD: DWG ↔ DXF และแปลงทั้งสองเป็น PDF, SVG และ PNG",
+<<<<<<< HEAD
+=======
+  "engine.gcode.name": "G-code (built-in)",
+  "engine.gcode.description": "เส้นทางของเครื่องพิมพ์ 3 มิติและเครื่อง CNC (G-code) เป็น PDF, SVG และรูปภาพ หรือภาพตัวอย่างของสไลเซอร์",
+  "engine.slides-md.name": "สไลด์เป็น Markdown (built-in)",
+  "engine.slides-md.description": "สไลด์ PowerPoint (PPTX, PPTM, POTX, PPSX) เป็น Markdown หนึ่งส่วนต่อหนึ่งสไลด์ พร้อมหัวเรื่อง รายการ ตาราง รูปภาพ และบันทึกของผู้บรรยาย ใช้กับ reveal.js ได้ทันที",
+>>>>>>> d71ede58 (feat(slides): write PowerPoint slides as reveal.js Markdown)
   "engine.model3d.name": "3D models (built-in)",
   "engine.model3d.description": "โมเดล 3D: GLB, glTF, STL, OBJ, 3MF และ PLY สลับกันได้ FBX เป็นฟอร์แมตใดก็ได้ และแสดงตัวอย่างเป็น PNG",
   "engine.geo.name": "Geospatial vector data (built-in)",

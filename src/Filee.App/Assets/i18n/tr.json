@@ -215,6 +215,13 @@
   "engine.font.description": "TTF, OTF, WOFF, WOFF2 ve EOT arasında dönüştürür; Windows bitmap yazı tiplerini (FON) bu biçimlere dönüştürür.",
   "engine.cad.name": "CAD (yerleşik)",
   "engine.cad.description": "AutoCAD çizimleri: DWG ↔ DXF ve her ikisinden PDF, SVG ve PNG.",
+<<<<<<< HEAD
+=======
+  "engine.gcode.name": "G-code (yerleşik)",
+  "engine.gcode.description": "3B yazıcıların ve CNC makinelerinin takım yolları (G-code) PDF, SVG ve resme, ya da dilimleyicinin kendi önizlemesi.",
+  "engine.slides-md.name": "Slaytlardan Markdown (yerleşik)",
+  "engine.slides-md.description": "PowerPoint slaytları (PPTX, PPTM, POTX, PPSX) her slayt bir bölüm olacak şekilde Markdown'a: başlıklar, listeler, tablolar, resimler ve konuşmacı notları, reveal.js için hazır.",
+>>>>>>> d71ede58 (feat(slides): write PowerPoint slides as reveal.js Markdown)
   "engine.model3d.name": "3B modeller (yerleşik)",
   "engine.model3d.description": "3B modeller: GLB, glTF, STL, OBJ, 3MF ve PLY arasında dönüştürme; FBX'ten bunların tümüne ve PNG önizlemesine dönüştürme.",
   "engine.geo.name": "Coğrafi vektör verisi (yerleşik)",

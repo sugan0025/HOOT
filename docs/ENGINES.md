@@ -912,6 +912,48 @@ wrote it (PDFsharp, rhwp, LibreOffice, Ghostscript …), and once on a merged PD
   longer has one. The editor takes at most 127 UTF-8 bytes, all that AES-256 readers use, and turns the box off while
   PDF/A is ticked, since PDF/A forbids encryption.
 
+<<<<<<< HEAD
+=======
+## PDF/A
+
+A preset with *PDF/A (archival)* ticked (`DocumentOptions.PdfA`; the built-in "PDF/A" preset, #1367) makes every PDF
+it writes a PDF/A-2b, PDF → PDF too. `JobQueue` runs `IPdfArchiver` (Ghostscript) after the finishing, on each PDF a
+file became and once on a merged PDF, so the box means the same whichever engine wrote the PDF.
+
+- **Already PDF/A**: LibreOffice (`SelectPdfVersion` 2) and SVG → PDF (Skia) write PDF/A themselves. A PDF whose
+  catalog XMP has `pdfaid:part` is kept as it is, unless a watermark or page numbers were added since: then it is
+  rewritten like any other.
+- **Ghostscript** (`GhostscriptConverter.ConvertToPdfAAsync`): `pdfwrite` with `-dPDFA=2 -dPDFACompatibilityPolicy=1
+  -sColorConversionStrategy=RGB`, after a small PostScript prelude (as Ghostscript's `PDFA_def.ps`) that adds the sRGB
+  output intent; the profile is Magick.NET's sRGB, written into the prelude as a hex string so safe mode needn't read
+  a file. Colours become RGB, fonts are embedded, what PDF/A forbids is left out (policy 1), and a tagged PDF loses its
+  tags (part B doesn't need them).
+- **Without Ghostscript**: a preset whose files are all PDFs is greyed out with the usual engine reason. Other files
+  are converted and the PDF is left as it is, with `notice.pdfa_needs_ghostscript` in the result, unless LibreOffice
+  made it PDF/A.
+
+## Slides → Markdown (reveal.js)
+
+The slides engine (`Office/Slides/SlidesMarkdownConverter.cs`, id `slides-md`, #1702) writes a PowerPoint file (PPTX,
+PPTM, POTX, POTM, PPSX; PPT and ODP through LibreOffice first) as Markdown that [reveal.js](https://revealjs.com/markdown/)
+shows as a deck and any editor reads as a document. Before it, PPTX → Markdown went through HWPX and Unhwp, which
+placed the slides' objects on pages and lost the slides, titles and lists.
+
+- One section per visible slide, `---` between them. A slide with nothing to show (blank, or a chart only) stays an
+  empty section, so the slide count matches.
+- The title placeholder leads the slide: `#` on a title slide (`ctrTitle`), `##` otherwise.
+- Text in the slide's order: body and content placeholders are bullet lists unless a paragraph has no bullet
+  (`buNone`); text boxes are paragraphs unless a paragraph has one. Levels become indented items, automatic numbering
+  becomes `1.`, `2.`; runs keep bold, italic and web/mail links. Text that would read as Markdown is escaped.
+- Tables become pipe tables (the first row as header, a cell's paragraphs joined by `<br>`).
+- Pictures go into `<name>_files` next to the file, like the other Markdown outputs; **Leave out pictures** leaves
+  them out.
+- The speaker notes follow a `Note:` line, which reveal.js shows in its speaker view.
+- Right-to-left and other scripts are written as they are; Markdown has no direction of its own.
+
+Not converted: charts, SmartArt, equations, animations and hidden slides.
+
+>>>>>>> d71ede58 (feat(slides): write PowerPoint slides as reveal.js Markdown)
 ## Office Open XML variants
 
 `Office/OoxmlConverter.cs` converts between the variants of a family (Word, Excel, PowerPoint) by copying the

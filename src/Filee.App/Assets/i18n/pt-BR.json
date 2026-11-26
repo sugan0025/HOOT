@@ -216,6 +216,13 @@
   "engine.font.description": "Converte TTF, OTF, WOFF, WOFF2 e EOT entre si; converte fontes bitmap do Windows (FON) para esses formatos.",
   "engine.cad.name": "CAD (mecanismo integrado)",
   "engine.cad.description": "Desenhos do AutoCAD: DWG ↔ DXF, e os dois para PDF, SVG e PNG.",
+<<<<<<< HEAD
+=======
+  "engine.gcode.name": "G-code (mecanismo integrado)",
+  "engine.gcode.description": "Percursos de impressoras 3D e máquinas CNC (G-code) para PDF, SVG e imagens, ou a prévia do fatiador.",
+  "engine.slides-md.name": "Slides para Markdown (mecanismo integrado)",
+  "engine.slides-md.description": "Slides do PowerPoint (PPTX, PPTM, POTX, PPSX) em Markdown, uma seção por slide: títulos, listas, tabelas, imagens e anotações do apresentador, pronto para o reveal.js.",
+>>>>>>> d71ede58 (feat(slides): write PowerPoint slides as reveal.js Markdown)
   "engine.model3d.name": "Modelos 3D (mecanismo integrado)",
   "engine.model3d.description": "Modelos 3D: GLB, glTF, STL, OBJ, 3MF e PLY entre si, FBX para qualquer um deles, e uma prévia em PNG.",
   "engine.geo.name": "Dados geoespaciais vetoriais (mecanismo integrado)",
