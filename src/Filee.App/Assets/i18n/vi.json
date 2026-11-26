@@ -1580,5 +1580,7 @@
   "pdf_text_editor.status_replaced": "Text replaced on the working copy. Save As to export it.",
   "pdf_text_editor.status_saved": "Saved {0}",
   "pdf_text_editor.choose_pdf": "Choose a PDF file to edit its existing text.",
-  "pdf_text_editor.status_wait": "Please wait for the current PDF operation to finish."
+  "pdf_text_editor.status_wait": "Please wait for the current PDF operation to finish.",
+  "engine.slides-md.name": "Trang chiếu sang Markdown (tích hợp)",
+  "engine.slides-md.description": "Trang chiếu PowerPoint (PPTX, PPTM, POTX, POTM, PPSX) sang Markdown, mỗi trang một phần: tiêu đề, danh sách, bảng, hình ảnh và ghi chú của người thuyết trình, sẵn sàng cho reveal.js."
 }

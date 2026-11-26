@@ -19,11 +19,11 @@
   "tray.quit": "Выйти",
   "tray.update": "Обновить до {0}",
   "tray.tooltip": "HOOT: зажмите {0} и перетащите файлы",
-    "tray.blob.nap_30": "Nap Blob for 30 minutes",
-    "tray.blob.quiet_quips": "Quiet app quips for 1 hour",
-    "tray.blob.show": "Show Desktop Blob companion",
-    "tray.blob.nap_60": "Nap Blob for 1 hour",
-    "tray.blob.hide": "Hide Desktop Blob companion",
+  "tray.blob.nap_30": "Nap Blob for 30 minutes",
+  "tray.blob.quiet_quips": "Quiet app quips for 1 hour",
+  "tray.blob.show": "Show Desktop Blob companion",
+  "tray.blob.nap_60": "Nap Blob for 1 hour",
+  "tray.blob.hide": "Hide Desktop Blob companion",
   "close.title": "Оставить HOOT работать?",
   "close.text": "В трее продолжат работать круговое меню и папки наблюдения.\nЭто можно изменить позже в разделе «Настройки → Общие».",
   "close.tray": "Оставить в трее",
@@ -175,7 +175,6 @@
   "notice.geo_shapefile_split": "Shapefile хранит фигуры только одного вида, поэтому точки, линии и полигоны сохранены в отдельные файлы",
   "notice.geo_heights_dropped": "У некоторых точек нет высоты, а Shapefile не может пропустить высоту только у одной точки, поэтому убраны все высоты",
   "notice.osm_incomplete": "Некоторые линии и области используют точки, которых нет в файле (вырезанный фрагмент), поэтому они пропущены",
-
   "engine.reason.not_installed": "Не установлен",
   "engine.reason.error": "Ошибка при проверке",
   "engine.reason.unsupported_platform": "Недоступен на этой платформе",
@@ -1141,7 +1140,6 @@
   "engines.copy_links": "Копировать ссылки для скачивания",
   "engines.links_copied": "Ссылки для скачивания скопированы в буфер обмена. Скачайте файлы на компьютере с интернетом, а затем выберите здесь «Без интернета» → «Установить из скачанных файлов».",
   "engines.state.copying": "Копируется {0}%",
-
   "about.title": "О программе",
   "about.updates": "Обновления",
   "common.search": "Поиск",
@@ -1582,5 +1580,7 @@
   "pdf_text_editor.status_replaced": "Text replaced on the working copy. Save As to export it.",
   "pdf_text_editor.status_saved": "Saved {0}",
   "pdf_text_editor.choose_pdf": "Choose a PDF file to edit its existing text.",
-  "pdf_text_editor.status_wait": "Please wait for the current PDF operation to finish."
+  "pdf_text_editor.status_wait": "Please wait for the current PDF operation to finish.",
+  "engine.slides-md.name": "Слайды в Markdown (built-in)",
+  "engine.slides-md.description": "Слайды PowerPoint (PPTX, PPTM, POTX, POTM, PPSX) в Markdown, по разделу на слайд: заголовки, списки, таблицы, изображения и заметки докладчика, готово для reveal.js."
 }

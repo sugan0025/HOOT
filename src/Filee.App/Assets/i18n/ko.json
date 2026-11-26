@@ -19,11 +19,11 @@
   "tray.quit": "종료",
   "tray.update": "{0} 버전으로 업데이트",
   "tray.tooltip": "HOOT: {0} 누른 채 파일 드래그",
-    "tray.blob.nap_30": "Nap Blob for 30 minutes",
-    "tray.blob.quiet_quips": "Quiet app quips for 1 hour",
-    "tray.blob.show": "Show Desktop Blob companion",
-    "tray.blob.nap_60": "Nap Blob for 1 hour",
-    "tray.blob.hide": "Hide Desktop Blob companion",
+  "tray.blob.nap_30": "Nap Blob for 30 minutes",
+  "tray.blob.quiet_quips": "Quiet app quips for 1 hour",
+  "tray.blob.show": "Show Desktop Blob companion",
+  "tray.blob.nap_60": "Nap Blob for 1 hour",
+  "tray.blob.hide": "Hide Desktop Blob companion",
   "close.title": "HOOT를 계속 실행할까요?",
   "close.text": "트레이에 두면 원형 툴바와 자동 변환 폴더가 계속 동작해요.\n나중에 설정 → 일반에서 바꿀 수 있어요.",
   "close.tray": "트레이에 유지",
@@ -175,7 +175,6 @@
   "notice.geo_shapefile_split": "Shapefile은 한 종류의 도형만 담아서 점·선·면을 파일로 나눠 저장했어요",
   "notice.geo_heights_dropped": "일부 점에 높이가 없는데 Shapefile은 점마다 비워 둘 수 없어서 높이를 모두 뺐어요",
   "notice.osm_incomplete": "파일에 없는 점을 쓰는 선과 영역이 있어서(잘라 낸 지역) 뺐어요",
-
   "engine.reason.not_installed": "설치되지 않음",
   "engine.reason.error": "확인 중 오류",
   "engine.reason.unsupported_platform": "이 플랫폼에서는 사용할 수 없음",
@@ -1141,7 +1140,6 @@
   "engines.copy_links": "내려받기 링크 복사",
   "engines.links_copied": "내려받기 링크를 클립보드에 복사했어요. 인터넷이 되는 컴퓨터에서 파일을 내려받은 뒤, 여기서 오프라인 → 내려받은 파일로 설치를 고르세요.",
   "engines.state.copying": "복사하는 중 {0}%",
-
   "about.title": "정보",
   "about.updates": "업데이트",
   "common.search": "검색",
@@ -1582,5 +1580,7 @@
   "pdf_text_editor.status_replaced": "Text replaced on the working copy. Save As to export it.",
   "pdf_text_editor.status_saved": "Saved {0}",
   "pdf_text_editor.choose_pdf": "Choose a PDF file to edit its existing text.",
-  "pdf_text_editor.status_wait": "Please wait for the current PDF operation to finish."
+  "pdf_text_editor.status_wait": "Please wait for the current PDF operation to finish.",
+  "engine.slides-md.name": "슬라이드를 Markdown으로 (built-in)",
+  "engine.slides-md.description": "PowerPoint 슬라이드(PPTX, PPTM, POTX, POTM, PPSX)를 슬라이드마다 한 구역씩 Markdown으로 바꿔요. 제목, 목록, 표, 그림, 발표자 노트가 남아서 reveal.js에서 바로 쓸 수 있어요."
 }

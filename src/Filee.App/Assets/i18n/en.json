@@ -1580,5 +1580,7 @@
   "engines.package.exiftool.name": "ExifTool (metadata)",
   "engines.package.exiftool.description": "Reads every metadata field of pictures, PDFs, video and sound, and edits them in most kinds of file without touching the file's content.\nUsed by the Metadata tool; without it the fields are shown read-only.",
   "engines.guidance.macos.exiftool": "Install it with Homebrew (brew install exiftool), then choose “Check again”.\nOr choose “Use my copy…” and select its folder.",
-  "engines.guidance.linux.exiftool": "Install it with your package manager (Ubuntu/Debian: sudo apt install libimage-exiftool-perl), then choose “Check again”."
+  "engines.guidance.linux.exiftool": "Install it with your package manager (Ubuntu/Debian: sudo apt install libimage-exiftool-perl), then choose “Check again”.",
+  "engine.slides-md.name": "Slides to Markdown (built-in)",
+  "engine.slides-md.description": "PowerPoint slides (PPTX, PPTM, POTX, POTM, PPSX) to Markdown, one section per slide: titles, lists, tables, pictures and speaker notes, ready for reveal.js."
 }

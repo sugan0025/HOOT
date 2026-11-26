@@ -19,11 +19,11 @@
   "tray.quit": "結束",
   "tray.update": "更新到 {0}",
   "tray.tooltip": "HOOT：按住 {0} 拖曳檔案",
-    "tray.blob.nap_30": "Nap Blob for 30 minutes",
-    "tray.blob.quiet_quips": "Quiet app quips for 1 hour",
-    "tray.blob.show": "Show Desktop Blob companion",
-    "tray.blob.nap_60": "Nap Blob for 1 hour",
-    "tray.blob.hide": "Hide Desktop Blob companion",
+  "tray.blob.nap_30": "Nap Blob for 30 minutes",
+  "tray.blob.quiet_quips": "Quiet app quips for 1 hour",
+  "tray.blob.show": "Show Desktop Blob companion",
+  "tray.blob.nap_60": "Nap Blob for 1 hour",
+  "tray.blob.hide": "Hide Desktop Blob companion",
   "close.title": "讓 HOOT 繼續執行嗎？",
   "close.text": "保留在系統匣時，環形工具列和自動轉換資料夾會繼續運作。\n之後可以在 設定 → 一般 中變更。",
   "close.tray": "保留在系統匣",
@@ -175,7 +175,6 @@
   "notice.geo_shapefile_split": "Shapefile 只能儲存一種形狀，因此點、線、面被分別存成了多個檔案",
   "notice.geo_heights_dropped": "部分點沒有高度，而 Shapefile 無法只省略其中一個點的高度，因此已省略所有高度",
   "notice.osm_incomplete": "部分線和區域用到了檔案中沒有的點（擷取的局部資料），因此已省略",
-
   "engine.reason.not_installed": "未安裝",
   "engine.reason.error": "檢查時出錯",
   "engine.reason.unsupported_platform": "此平台不可用",
@@ -1141,7 +1140,6 @@
   "engines.copy_links": "複製下載連結",
   "engines.links_copied": "下載連結已複製到剪貼簿。請在能連網的電腦上下載這些檔案，然後在這裡選擇 離線 → 從已下載的檔案安裝。",
   "engines.state.copying": "複製中 {0}%",
-
   "about.title": "關於",
   "about.updates": "更新",
   "common.search": "搜尋",
@@ -1582,5 +1580,7 @@
   "pdf_text_editor.status_replaced": "Text replaced on the working copy. Save As to export it.",
   "pdf_text_editor.status_saved": "Saved {0}",
   "pdf_text_editor.choose_pdf": "Choose a PDF file to edit its existing text.",
-  "pdf_text_editor.status_wait": "Please wait for the current PDF operation to finish."
+  "pdf_text_editor.status_wait": "Please wait for the current PDF operation to finish.",
+  "engine.slides-md.name": "投影片轉 Markdown (built-in)",
+  "engine.slides-md.description": "PowerPoint 投影片（PPTX、PPTM、POTX、POTM、PPSX）轉為 Markdown，每張投影片一節：保留標題、清單、表格、圖片和演講者備忘稿，可直接用於 reveal.js。"
 }

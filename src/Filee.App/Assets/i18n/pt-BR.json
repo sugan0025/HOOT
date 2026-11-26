@@ -19,11 +19,11 @@
   "tray.quit": "Sair",
   "tray.update": "Atualizar para {0}",
   "tray.tooltip": "HOOT: segure {0} e arraste arquivos",
-    "tray.blob.nap_30": "Nap Blob for 30 minutes",
-    "tray.blob.quiet_quips": "Quiet app quips for 1 hour",
-    "tray.blob.show": "Show Desktop Blob companion",
-    "tray.blob.nap_60": "Nap Blob for 1 hour",
-    "tray.blob.hide": "Hide Desktop Blob companion",
+  "tray.blob.nap_30": "Nap Blob for 30 minutes",
+  "tray.blob.quiet_quips": "Quiet app quips for 1 hour",
+  "tray.blob.show": "Show Desktop Blob companion",
+  "tray.blob.nap_60": "Nap Blob for 1 hour",
+  "tray.blob.hide": "Hide Desktop Blob companion",
   "close.title": "Manter o HOOT em execução?",
   "close.text": "Na bandeja, o menu circular e as pastas monitoradas continuam funcionando.\nVocê pode mudar isso depois em Configurações → Geral.",
   "close.tray": "Manter na bandeja",
@@ -175,7 +175,6 @@
   "notice.geo_shapefile_split": "Um Shapefile guarda um tipo de forma, então pontos, linhas e polígonos foram salvos em arquivos separados",
   "notice.geo_heights_dropped": "Alguns pontos não têm altura e o Shapefile não pode deixá-la de fora em apenas um, então todas as alturas foram omitidas",
   "notice.osm_incomplete": "Algumas linhas e áreas usam pontos que não estão no arquivo (um recorte do mapa) e foram omitidas",
-
   "engine.reason.not_installed": "Não instalado",
   "engine.reason.error": "Erro ao verificar",
   "engine.reason.unsupported_platform": "Indisponível nesta plataforma",
@@ -1141,7 +1140,6 @@
   "engines.copy_links": "Copiar links de download",
   "engines.links_copied": "Os links de download estão na área de transferência. Baixe os arquivos em um computador com internet e depois escolha aqui Offline → Instalar de arquivos baixados.",
   "engines.state.copying": "Copiando {0}%",
-
   "about.title": "Sobre",
   "about.updates": "Atualizações",
   "common.search": "Pesquisar",
@@ -1582,5 +1580,7 @@
   "pdf_text_editor.status_replaced": "Text replaced on the working copy. Save As to export it.",
   "pdf_text_editor.status_saved": "Saved {0}",
   "pdf_text_editor.choose_pdf": "Choose a PDF file to edit its existing text.",
-  "pdf_text_editor.status_wait": "Please wait for the current PDF operation to finish."
+  "pdf_text_editor.status_wait": "Please wait for the current PDF operation to finish.",
+  "engine.slides-md.name": "Slides para Markdown (mecanismo integrado)",
+  "engine.slides-md.description": "Slides do PowerPoint (PPTX, PPTM, POTX, POTM, PPSX) em Markdown, uma seção por slide: títulos, listas, tabelas, imagens e anotações do apresentador, pronto para o reveal.js."
 }

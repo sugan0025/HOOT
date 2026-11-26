@@ -35,9 +35,56 @@ public sealed class PdfTextObjectEditorTests(EngineFixture fixture) : IClassFixt
         Assert.NotEmpty(editedPreview.Png);
     }
 
-    private static void WriteSimplePdf(string path, string text)
+    [Fact]
+    public void Deletes_and_adds_vector_text_objects_and_reports_page_dimensions()
     {
-        var content = $"BT /F1 18 Tf 72 700 Td ({text}) Tj ET\n";
+        var folder = fixture.NewFolder();
+        var source = Path.Combine(folder, "source.pdf");
+        var deleted = Path.Combine(folder, "deleted.pdf");
+        var added = Path.Combine(folder, "added.pdf");
+        WriteSimplePdf(source, "Remove me");
+
+        var info = PdfTextObjectEditor.ReadPageInfo(source, 0);
+        Assert.Equal(612, info.Width, 1);
+        Assert.Equal(792, info.Height, 1);
+        var target = Assert.Single(info.Objects);
+
+        var ct = TestContext.Current.CancellationToken;
+        PdfTextObjectEditor.DeleteTextObject(source, deleted, target.PageIndex, target.ObjectIndex, ct);
+        Assert.Empty(PdfTextObjectEditor.ReadTextObjects(deleted, 0));
+
+        PdfTextObjectEditor.AddTextObject(deleted, added, 0, "Added heading", 100, 650, fontSize: 16, r: 20, g: 40, b: 180, cancellationToken: ct);
+        var addedObj = Assert.Single(PdfTextObjectEditor.ReadTextObjects(added, 0));
+        Assert.Equal("Added heading", addedObj.Text);
+        Assert.InRange(addedObj.Left, 95, 110);
+        Assert.InRange(addedObj.Bottom, 645, 655);
+    }
+
+    [Fact]
+    public void Replaces_multiple_selected_text_objects_as_one_phrase()
+    {
+        var folder = fixture.NewFolder();
+        var source = Path.Combine(folder, "multi.pdf");
+        var output = Path.Combine(folder, "multi_edited.pdf");
+        var content = "BT /F1 14 Tf 72 700 Td (01.) Tj ET\nBT /F1 14 Tf 110 700 Td (Baki) Tj ET\n";
+        WriteRawContentPdf(source, content);
+
+        var items = PdfTextObjectEditor.ReadTextObjects(source, 0);
+        Assert.Equal(2, items.Count);
+
+        var ct = TestContext.Current.CancellationToken;
+        PdfTextObjectEditor.ReplaceTextObjects(source, output, 0, [items[0].ObjectIndex, items[1].ObjectIndex], "01. Attack on Titan", ct);
+
+        var revised = Assert.Single(PdfTextObjectEditor.ReadTextObjects(output, 0));
+        Assert.Equal("01. Attack on Titan", revised.Text);
+        Assert.InRange(revised.Left, 68, 76);
+    }
+
+    private static void WriteSimplePdf(string path, string text) =>
+        WriteRawContentPdf(path, $"BT /F1 18 Tf 72 700 Td ({text}) Tj ET\n");
+
+    private static void WriteRawContentPdf(string path, string content)
+    {
         var objects = new[]
         {
             "<< /Type /Catalog /Pages 2 0 R >>",

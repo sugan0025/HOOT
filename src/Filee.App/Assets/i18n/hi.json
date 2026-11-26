@@ -19,11 +19,11 @@
   "tray.quit": "बंद करें",
   "tray.update": "{0} पर अपडेट करें",
   "tray.tooltip": "HOOT: {0} दबाए रखें और फ़ाइलें खींचें",
-    "tray.blob.nap_30": "Nap Blob for 30 minutes",
-    "tray.blob.quiet_quips": "Quiet app quips for 1 hour",
-    "tray.blob.show": "Show Desktop Blob companion",
-    "tray.blob.nap_60": "Nap Blob for 1 hour",
-    "tray.blob.hide": "Hide Desktop Blob companion",
+  "tray.blob.nap_30": "Nap Blob for 30 minutes",
+  "tray.blob.quiet_quips": "Quiet app quips for 1 hour",
+  "tray.blob.show": "Show Desktop Blob companion",
+  "tray.blob.nap_60": "Nap Blob for 1 hour",
+  "tray.blob.hide": "Hide Desktop Blob companion",
   "close.title": "HOOT को चालू रखें?",
   "close.text": "ट्रे में रहने पर डोनट टूलबार और वॉच फ़ोल्डर काम करते रहेंगे।\nआप इसे बाद में सेटिंग्स → सामान्य में बदल सकते हैं।",
   "close.tray": "ट्रे में रखें",
@@ -1580,5 +1580,7 @@
   "pdf_text_editor.status_replaced": "Text replaced on the working copy. Save As to export it.",
   "pdf_text_editor.status_saved": "Saved {0}",
   "pdf_text_editor.choose_pdf": "Choose a PDF file to edit its existing text.",
-  "pdf_text_editor.status_wait": "Please wait for the current PDF operation to finish."
+  "pdf_text_editor.status_wait": "Please wait for the current PDF operation to finish.",
+  "engine.slides-md.name": "स्लाइड से Markdown (built-in)",
+  "engine.slides-md.description": "PowerPoint स्लाइड (PPTX, PPTM, POTX, POTM, PPSX) से Markdown, हर स्लाइड का एक भाग: शीर्षक, सूचियाँ, तालिकाएँ, चित्र और वक्ता नोट्स, reveal.js के लिए तैयार।"
 }

@@ -1580,5 +1580,7 @@
   "pdf_text_editor.status_replaced": "Text replaced on the working copy. Save As to export it.",
   "pdf_text_editor.status_saved": "Saved {0}",
   "pdf_text_editor.choose_pdf": "Choose a PDF file to edit its existing text.",
-  "pdf_text_editor.status_wait": "Please wait for the current PDF operation to finish."
+  "pdf_text_editor.status_wait": "Please wait for the current PDF operation to finish.",
+  "engine.slides-md.name": "স্লাইড থেকে Markdown (বিল্ট-ইন)",
+  "engine.slides-md.description": "PowerPoint স্লাইড (PPTX, PPTM, POTX, POTM, PPSX) থেকে Markdown, প্রতিটি স্লাইড একটি অংশ: শিরোনাম, তালিকা, টেবিল, ছবি ও বক্তার নোট, reveal.js-এর জন্য প্রস্তুত।"
 }

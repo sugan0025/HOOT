@@ -8,7 +8,9 @@ namespace Filee.Engines.Pdf;
 public sealed record PdfTextObject(int PageIndex, int ObjectIndex, string Text, double Left, double Bottom,
     double Right, double Top, double FontSize);
 
-/// <summary>Reads and replaces existing PDF text objects without rasterizing pages.</summary>
+public sealed record PdfPageTextInfo(double Width, double Height, IReadOnlyList<PdfTextObject> Objects);
+
+/// <summary>Reads, replaces, adds, and deletes existing PDF text objects without rasterizing pages.</summary>
 public static class PdfTextObjectEditor
 {
     // PDFtoImage 5.2.1 uses this interned monitor for every PDFium call (NativeMethods.cs). Keep the package pinned
@@ -20,7 +22,10 @@ public static class PdfTextObjectEditor
     private const int PdfiumTextObject = 1;
     private const int SaveNoIncremental = 0;
 
-    public static IReadOnlyList<PdfTextObject> ReadTextObjects(string path, int pageIndex)
+    public static IReadOnlyList<PdfTextObject> ReadTextObjects(string path, int pageIndex) =>
+        ReadPageInfo(path, pageIndex).Objects;
+
+    public static PdfPageTextInfo ReadPageInfo(string path, int pageIndex)
     {
         lock (PdfiumLock)
         {
@@ -34,6 +39,8 @@ public static class PdfTextObjectEditor
                 throw new InvalidDataException("PDFium could not open this PDF page.");
             try
             {
+                var width = (double)Native.FPDF_GetPageWidthF(page);
+                var height = (double)Native.FPDF_GetPageHeightF(page);
                 var textPage = Native.FPDFText_LoadPage(page);
                 if (textPage == IntPtr.Zero)
                     throw new InvalidDataException("PDFium could not read text from this PDF page.");
@@ -54,7 +61,7 @@ public static class PdfTextObjectEditor
                         Native.FPDFTextObj_GetFontSize(obj, out var fontSize);
                         result.Add(new PdfTextObject(pageIndex, objectIndex, text, left, bottom, right, top, fontSize));
                     }
-                    return result;
+                    return new PdfPageTextInfo(width, height, result);
                 }
                 finally { Native.FPDFText_ClosePage(textPage); }
             }
@@ -62,15 +69,20 @@ public static class PdfTextObjectEditor
         }
     }
 
-    /// <summary>Replaces one existing text object and writes the result to a separate output file.</summary>
+    /// <summary>Replaces one existing text object (falling back to a standard vector font if the embedded font is subsetted) and writes the result to a separate output file.</summary>
     public static void ReplaceTextObject(string sourcePath, string outputPath, int pageIndex, int objectIndex,
         string replacement, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(sourcePath);
         ArgumentException.ThrowIfNullOrWhiteSpace(outputPath);
-        ArgumentException.ThrowIfNullOrWhiteSpace(replacement);
+        ArgumentNullException.ThrowIfNull(replacement);
         if (replacement.Contains('\0'))
             throw new ArgumentException("PDF text cannot contain a NUL character.", nameof(replacement));
+        if (string.IsNullOrWhiteSpace(replacement))
+        {
+            DeleteTextObject(sourcePath, outputPath, pageIndex, objectIndex, cancellationToken);
+            return;
+        }
 
         lock (PdfiumLock)
         {
@@ -94,11 +106,280 @@ public static class PdfTextObjectEditor
                 try
                 {
                     if (Native.FPDFText_SetText(obj, value) == 0)
-                        throw new InvalidOperationException("PDFium could not replace this text. The font may not support the replacement characters.");
+                    {
+                        // Subsetted / CID-encoded fonts often reject new glyphs in FPDFText_SetText.
+                        // Fall back to replacing the object with a standard vector Helvetica text object at the same position, size, and color.
+                        if (Native.FPDFPageObj_GetBounds(obj, out var left, out var bottom, out _, out _) == 0)
+                            throw new InvalidOperationException("PDFium could not read the bounds of this text object.");
+                        if (Native.FPDFTextObj_GetFontSize(obj, out var fontSize) == 0 || fontSize <= 0)
+                            fontSize = 12f;
+                        if (Native.FPDFPageObj_GetFillColor(obj, out var r, out var g, out var b, out var a) == 0)
+                            (r, g, b, a) = (0, 0, 0, 255);
+
+                        var replacementObj = Native.FPDFPageObj_NewTextObj(session.Document, "Helvetica", fontSize);
+                        if (replacementObj == IntPtr.Zero)
+                            throw new InvalidOperationException("PDFium could not create a replacement vector text object.");
+                        try
+                        {
+                            if (Native.FPDFText_SetText(replacementObj, value) == 0)
+                                throw new InvalidOperationException("PDFium could not encode the replacement text.");
+                            Native.FPDFPageObj_SetFillColor(replacementObj, r, g, b, a);
+                            Native.FPDFPageObj_Transform(replacementObj, 1, 0, 0, 1, left, bottom);
+                        }
+                        catch
+                        {
+                            Native.FPDFPageObj_Destroy(replacementObj);
+                            throw;
+                        }
+
+                        if (Native.FPDFPage_RemoveObject(page, obj) != 0)
+                            Native.FPDFPageObj_Destroy(obj);
+                        Native.FPDFPage_InsertObject(page, replacementObj);
+                    }
                 }
                 finally { Marshal.FreeHGlobal(value); }
                 if (Native.FPDFPage_GenerateContent(page) == 0)
                     throw new InvalidOperationException("PDFium could not regenerate the page content after replacing the text.");
+            }
+            finally { Native.FPDF_ClosePage(page); }
+
+            cancellationToken.ThrowIfCancellationRequested();
+            SaveCopy(session.Document, outputPath);
+        }
+    }
+
+    /// <summary>Replaces one or more existing text objects on a page with a single replacement string.</summary>
+    public static void ReplaceTextObjects(string sourcePath, string outputPath, int pageIndex,
+        IReadOnlyList<int> objectIndices, string replacement, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(objectIndices);
+        if (objectIndices.Count == 0)
+            throw new ArgumentException("At least one text object must be selected.", nameof(objectIndices));
+        if (objectIndices.Count == 1)
+        {
+            ReplaceTextObject(sourcePath, outputPath, pageIndex, objectIndices[0], replacement, cancellationToken);
+            return;
+        }
+        ArgumentException.ThrowIfNullOrWhiteSpace(sourcePath);
+        ArgumentException.ThrowIfNullOrWhiteSpace(outputPath);
+        ArgumentNullException.ThrowIfNull(replacement);
+        if (replacement.Contains('\0'))
+            throw new ArgumentException("PDF text cannot contain a NUL character.", nameof(replacement));
+        if (string.IsNullOrWhiteSpace(replacement))
+        {
+            DeleteTextObjects(sourcePath, outputPath, pageIndex, objectIndices, cancellationToken);
+            return;
+        }
+
+        lock (PdfiumLock)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            using var session = PdfiumSession.Open(sourcePath);
+            var count = Native.FPDF_GetPageCount(session.Document);
+            if (pageIndex < 0 || pageIndex >= count)
+                throw new ArgumentOutOfRangeException(nameof(pageIndex));
+            var page = Native.FPDF_LoadPage(session.Document, pageIndex);
+            if (page == IntPtr.Zero)
+                throw new InvalidDataException("PDFium could not open this PDF page.");
+            try
+            {
+                var objectCount = Native.FPDFPage_CountObjects(page);
+                var distinct = objectIndices.Distinct().ToList();
+                var anchorLeft = float.MaxValue;
+                var anchorBottom = 0f;
+                var anchorFontSize = 12f;
+                uint anchorR = 0, anchorG = 0, anchorB = 0, anchorA = 255;
+
+                foreach (var idx in distinct)
+                {
+                    if (idx < 0 || idx >= objectCount)
+                        throw new ArgumentOutOfRangeException(nameof(objectIndices));
+                    var obj = Native.FPDFPage_GetObject(page, idx);
+                    if (obj == IntPtr.Zero || Native.FPDFPageObj_GetType(obj) != PdfiumTextObject)
+                        throw new InvalidOperationException("One of the selected PDF objects is no longer editable text.");
+                    if (Native.FPDFPageObj_GetBounds(obj, out var left, out var bottom, out _, out _) != 0 && left < anchorLeft)
+                    {
+                        anchorLeft = left;
+                        anchorBottom = bottom;
+                        if (Native.FPDFTextObj_GetFontSize(obj, out var fs) != 0 && fs > 0)
+                            anchorFontSize = fs;
+                        if (Native.FPDFPageObj_GetFillColor(obj, out var r, out var g, out var b, out var a) != 0)
+                            (anchorR, anchorG, anchorB, anchorA) = (r, g, b, a);
+                    }
+                }
+                if (anchorLeft == float.MaxValue)
+                    anchorLeft = 72f;
+
+                var value = Marshal.StringToHGlobalUni(replacement);
+                IntPtr replacementObj;
+                try
+                {
+                    replacementObj = Native.FPDFPageObj_NewTextObj(session.Document, "Helvetica", anchorFontSize);
+                    if (replacementObj == IntPtr.Zero)
+                        throw new InvalidOperationException("PDFium could not create a replacement vector text object.");
+                    try
+                    {
+                        if (Native.FPDFText_SetText(replacementObj, value) == 0)
+                            throw new InvalidOperationException("PDFium could not encode the replacement text.");
+                        Native.FPDFPageObj_SetFillColor(replacementObj, anchorR, anchorG, anchorB, anchorA);
+                        Native.FPDFPageObj_Transform(replacementObj, 1, 0, 0, 1, anchorLeft, anchorBottom);
+                    }
+                    catch
+                    {
+                        Native.FPDFPageObj_Destroy(replacementObj);
+                        throw;
+                    }
+                }
+                finally { Marshal.FreeHGlobal(value); }
+
+                foreach (var idx in distinct.OrderByDescending(i => i))
+                {
+                    var obj = Native.FPDFPage_GetObject(page, idx);
+                    if (obj != IntPtr.Zero && Native.FPDFPage_RemoveObject(page, obj) != 0)
+                        Native.FPDFPageObj_Destroy(obj);
+                }
+                Native.FPDFPage_InsertObject(page, replacementObj);
+                if (Native.FPDFPage_GenerateContent(page) == 0)
+                    throw new InvalidOperationException("PDFium could not regenerate the page content after replacing the text.");
+            }
+            finally { Native.FPDF_ClosePage(page); }
+
+            cancellationToken.ThrowIfCancellationRequested();
+            SaveCopy(session.Document, outputPath);
+        }
+    }
+
+    /// <summary>Deletes one or more existing text objects from the page.</summary>
+    public static void DeleteTextObjects(string sourcePath, string outputPath, int pageIndex,
+        IReadOnlyList<int> objectIndices, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(objectIndices);
+        if (objectIndices.Count == 0)
+            throw new ArgumentException("At least one text object must be selected.", nameof(objectIndices));
+        if (objectIndices.Count == 1)
+        {
+            DeleteTextObject(sourcePath, outputPath, pageIndex, objectIndices[0], cancellationToken);
+            return;
+        }
+        ArgumentException.ThrowIfNullOrWhiteSpace(sourcePath);
+        ArgumentException.ThrowIfNullOrWhiteSpace(outputPath);
+
+        lock (PdfiumLock)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            using var session = PdfiumSession.Open(sourcePath);
+            var count = Native.FPDF_GetPageCount(session.Document);
+            if (pageIndex < 0 || pageIndex >= count)
+                throw new ArgumentOutOfRangeException(nameof(pageIndex));
+            var page = Native.FPDF_LoadPage(session.Document, pageIndex);
+            if (page == IntPtr.Zero)
+                throw new InvalidDataException("PDFium could not open this PDF page.");
+            try
+            {
+                var objectCount = Native.FPDFPage_CountObjects(page);
+                foreach (var idx in objectIndices.Distinct().OrderByDescending(i => i))
+                {
+                    if (idx < 0 || idx >= objectCount)
+                        throw new ArgumentOutOfRangeException(nameof(objectIndices));
+                    var obj = Native.FPDFPage_GetObject(page, idx);
+                    if (obj != IntPtr.Zero && Native.FPDFPageObj_GetType(obj) == PdfiumTextObject
+                        && Native.FPDFPage_RemoveObject(page, obj) != 0)
+                        Native.FPDFPageObj_Destroy(obj);
+                }
+                if (Native.FPDFPage_GenerateContent(page) == 0)
+                    throw new InvalidOperationException("PDFium could not regenerate the page content after deleting the text.");
+            }
+            finally { Native.FPDF_ClosePage(page); }
+
+            cancellationToken.ThrowIfCancellationRequested();
+            SaveCopy(session.Document, outputPath);
+        }
+    }
+
+    /// <summary>Deletes one existing text object from the page and writes the result to a separate output file.</summary>
+    public static void DeleteTextObject(string sourcePath, string outputPath, int pageIndex, int objectIndex,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(sourcePath);
+        ArgumentException.ThrowIfNullOrWhiteSpace(outputPath);
+
+        lock (PdfiumLock)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            using var session = PdfiumSession.Open(sourcePath);
+            var count = Native.FPDF_GetPageCount(session.Document);
+            if (pageIndex < 0 || pageIndex >= count)
+                throw new ArgumentOutOfRangeException(nameof(pageIndex));
+            var page = Native.FPDF_LoadPage(session.Document, pageIndex);
+            if (page == IntPtr.Zero)
+                throw new InvalidDataException("PDFium could not open this PDF page.");
+            try
+            {
+                var objectCount = Native.FPDFPage_CountObjects(page);
+                if (objectIndex < 0 || objectIndex >= objectCount)
+                    throw new ArgumentOutOfRangeException(nameof(objectIndex));
+                var obj = Native.FPDFPage_GetObject(page, objectIndex);
+                if (obj == IntPtr.Zero || Native.FPDFPageObj_GetType(obj) != PdfiumTextObject)
+                    throw new InvalidOperationException("The selected PDF object is no longer editable text.");
+                if (Native.FPDFPage_RemoveObject(page, obj) == 0)
+                    throw new InvalidOperationException("PDFium could not remove the selected text object.");
+                Native.FPDFPageObj_Destroy(obj);
+                if (Native.FPDFPage_GenerateContent(page) == 0)
+                    throw new InvalidOperationException("PDFium could not regenerate the page content after deleting the text.");
+            }
+            finally { Native.FPDF_ClosePage(page); }
+
+            cancellationToken.ThrowIfCancellationRequested();
+            SaveCopy(session.Document, outputPath);
+        }
+    }
+
+    /// <summary>Adds a new vector text object at the specified PDF page coordinates (points from bottom-left).</summary>
+    public static void AddTextObject(string sourcePath, string outputPath, int pageIndex, string text,
+        double x, double y, double fontSize = 14, byte r = 0, byte g = 0, byte b = 0,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(sourcePath);
+        ArgumentException.ThrowIfNullOrWhiteSpace(outputPath);
+        ArgumentException.ThrowIfNullOrWhiteSpace(text);
+        if (text.Contains('\0'))
+            throw new ArgumentException("PDF text cannot contain a NUL character.", nameof(text));
+        if (fontSize <= 0)
+            fontSize = 14;
+
+        lock (PdfiumLock)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            using var session = PdfiumSession.Open(sourcePath);
+            var count = Native.FPDF_GetPageCount(session.Document);
+            if (pageIndex < 0 || pageIndex >= count)
+                throw new ArgumentOutOfRangeException(nameof(pageIndex));
+            var page = Native.FPDF_LoadPage(session.Document, pageIndex);
+            if (page == IntPtr.Zero)
+                throw new InvalidDataException("PDFium could not open this PDF page.");
+            try
+            {
+                var newObj = Native.FPDFPageObj_NewTextObj(session.Document, "Helvetica", (float)fontSize);
+                if (newObj == IntPtr.Zero)
+                    throw new InvalidOperationException("PDFium could not create a new vector text object.");
+                var value = Marshal.StringToHGlobalUni(text);
+                try
+                {
+                    if (Native.FPDFText_SetText(newObj, value) == 0)
+                        throw new InvalidOperationException("PDFium could not encode the text.");
+                    Native.FPDFPageObj_SetFillColor(newObj, r, g, b, 255);
+                    Native.FPDFPageObj_Transform(newObj, 1, 0, 0, 1, x, y);
+                }
+                catch
+                {
+                    Native.FPDFPageObj_Destroy(newObj);
+                    throw;
+                }
+                finally { Marshal.FreeHGlobal(value); }
+
+                Native.FPDFPage_InsertObject(page, newObj);
+                if (Native.FPDFPage_GenerateContent(page) == 0)
+                    throw new InvalidOperationException("PDFium could not regenerate the page content after adding text.");
             }
             finally { Native.FPDF_ClosePage(page); }
 
@@ -231,10 +512,19 @@ public static class PdfTextObjectEditor
         [DllImport(Library, CallingConvention = CallingConvention.Cdecl)] internal static extern int FPDF_GetPageCount(IntPtr document);
         [DllImport(Library, CallingConvention = CallingConvention.Cdecl)] internal static extern IntPtr FPDF_LoadPage(IntPtr document, int pageIndex);
         [DllImport(Library, CallingConvention = CallingConvention.Cdecl)] internal static extern void FPDF_ClosePage(IntPtr page);
+        [DllImport(Library, CallingConvention = CallingConvention.Cdecl)] internal static extern float FPDF_GetPageWidthF(IntPtr page);
+        [DllImport(Library, CallingConvention = CallingConvention.Cdecl)] internal static extern float FPDF_GetPageHeightF(IntPtr page);
         [DllImport(Library, CallingConvention = CallingConvention.Cdecl)] internal static extern int FPDFPage_CountObjects(IntPtr page);
         [DllImport(Library, CallingConvention = CallingConvention.Cdecl)] internal static extern IntPtr FPDFPage_GetObject(IntPtr page, int index);
+        [DllImport(Library, CallingConvention = CallingConvention.Cdecl)] internal static extern void FPDFPage_InsertObject(IntPtr page, IntPtr pageObject);
+        [DllImport(Library, CallingConvention = CallingConvention.Cdecl)] internal static extern int FPDFPage_RemoveObject(IntPtr page, IntPtr pageObject);
+        [DllImport(Library, CallingConvention = CallingConvention.Cdecl)] internal static extern void FPDFPageObj_Destroy(IntPtr pageObject);
+        [DllImport(Library, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)] internal static extern IntPtr FPDFPageObj_NewTextObj(IntPtr document, [MarshalAs(UnmanagedType.LPStr)] string font, float fontSize);
         [DllImport(Library, CallingConvention = CallingConvention.Cdecl)] internal static extern int FPDFPageObj_GetType(IntPtr obj);
         [DllImport(Library, CallingConvention = CallingConvention.Cdecl)] internal static extern int FPDFPageObj_GetBounds(IntPtr obj, out float left, out float bottom, out float right, out float top);
+        [DllImport(Library, CallingConvention = CallingConvention.Cdecl)] internal static extern int FPDFPageObj_GetFillColor(IntPtr obj, out uint r, out uint g, out uint b, out uint a);
+        [DllImport(Library, CallingConvention = CallingConvention.Cdecl)] internal static extern int FPDFPageObj_SetFillColor(IntPtr obj, uint r, uint g, uint b, uint a);
+        [DllImport(Library, CallingConvention = CallingConvention.Cdecl)] internal static extern void FPDFPageObj_Transform(IntPtr obj, double a, double b, double c, double d, double e, double f);
         [DllImport(Library, CallingConvention = CallingConvention.Cdecl)] internal static extern int FPDFTextObj_GetFontSize(IntPtr obj, out float size);
         [DllImport(Library, CallingConvention = CallingConvention.Cdecl)] internal static extern IntPtr FPDFText_LoadPage(IntPtr page);
         [DllImport(Library, CallingConvention = CallingConvention.Cdecl)] internal static extern void FPDFText_ClosePage(IntPtr textPage);

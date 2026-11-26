@@ -14,6 +14,20 @@ change, a language may repeat; a language without lines shows the English ones):
 - `recommended`: bug fixes. The card shows once per version.
 - `optional`: new features only. No card, the sidebar button only.
 
+## 3.0.4
+
+<!-- update
+level: recommended
+en: Formatting, alignment, and OCR fixes for DOCX, PowerPoint, slanted PDFs, and 16-bit images, plus an interactive PDF text editor.
+-->
+
+- **Interactive PDF text editor**: Click or drag directly on text in the PDF page preview to select words or phrases, replace text (with automatic vector fallback for subsetted/CID fonts), delete text objects, add new vector text at any position, and undo edits before saving.
+- **Word → PDF paragraph & header borders** (#1700): Bottom borders on header paragraphs, shared borders between adjacent paragraphs, and paragraph-to-border spacing now render in PDF exports.
+- **PowerPoint → Markdown for reveal.js** (#1702): Presentations convert into slide-delimited Markdown (`---`) with headings, nested lists, tables, pictures, and speaker notes.
+- **Searchable PDFs scanned at an angle** (#1538): OCR text layers on slightly tilted or slanted scans now extract line-by-line into TXT, Markdown, DOCX, and HWPX.
+- **16-bit image depth clamping** (#1547): 8-bit-detail images read as 16-bit no longer produce oversized 16-bit/12-bit output files.
+- **Shortcut output placement** (#1706): Converting a desktop shortcut saves the output next to the shortcut instead of inside the target program's folder.
+
 ## 3.0.1
 
 <!-- update

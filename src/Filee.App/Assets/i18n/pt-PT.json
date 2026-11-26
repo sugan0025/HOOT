@@ -19,11 +19,11 @@
   "tray.quit": "Sair",
   "tray.update": "Atualizar para {0}",
   "tray.tooltip": "HOOT: mantém {0} premido e arrasta ficheiros",
-    "tray.blob.nap_30": "Nap Blob for 30 minutes",
-    "tray.blob.quiet_quips": "Quiet app quips for 1 hour",
-    "tray.blob.show": "Show Desktop Blob companion",
-    "tray.blob.nap_60": "Nap Blob for 1 hour",
-    "tray.blob.hide": "Hide Desktop Blob companion",
+  "tray.blob.nap_30": "Nap Blob for 30 minutes",
+  "tray.blob.quiet_quips": "Quiet app quips for 1 hour",
+  "tray.blob.show": "Show Desktop Blob companion",
+  "tray.blob.nap_60": "Nap Blob for 1 hour",
+  "tray.blob.hide": "Hide Desktop Blob companion",
   "close.title": "Manter o HOOT em execução?",
   "close.text": "Na área de notificação, a barra circular e as pastas monitorizadas continuam a funcionar.\nPodes alterar esta opção mais tarde em Definições → Geral.",
   "close.tray": "Manter na área de notificação",
@@ -175,7 +175,6 @@
   "notice.geo_shapefile_split": "Um Shapefile guarda apenas um tipo de geometria, pelo que os pontos, linhas e polígonos foram guardados em ficheiros separados",
   "notice.geo_heights_dropped": "Alguns pontos não têm altura e um Shapefile não pode omiti-la apenas em alguns, pelo que todas as alturas foram omitidas",
   "notice.osm_incomplete": "Algumas linhas e áreas usam pontos que não estão no ficheiro (um recorte do mapa) e foram omitidas",
-
   "engine.reason.not_installed": "Não instalado",
   "engine.reason.error": "Erro na verificação",
   "engine.reason.unsupported_platform": "Indisponível nesta plataforma",
@@ -1141,7 +1140,6 @@
   "engines.copy_links": "Copiar ligações de transferência",
   "engines.links_copied": "As ligações de transferência estão na área de transferência. Descarrega os ficheiros num computador com internet e depois escolhe aqui Offline → Instalar a partir de ficheiros descarregados.",
   "engines.state.copying": "A copiar {0}%",
-
   "about.title": "Acerca de",
   "about.updates": "Atualizações",
   "common.search": "Pesquisar",
@@ -1582,5 +1580,7 @@
   "pdf_text_editor.status_replaced": "Text replaced on the working copy. Save As to export it.",
   "pdf_text_editor.status_saved": "Saved {0}",
   "pdf_text_editor.choose_pdf": "Choose a PDF file to edit its existing text.",
-  "pdf_text_editor.status_wait": "Please wait for the current PDF operation to finish."
+  "pdf_text_editor.status_wait": "Please wait for the current PDF operation to finish.",
+  "engine.slides-md.name": "Diapositivos para Markdown (motor integrado)",
+  "engine.slides-md.description": "Diapositivos do PowerPoint (PPTX, PPTM, POTX, POTM, PPSX) em Markdown, uma secção por diapositivo: títulos, listas, tabelas, imagens e notas do orador, pronto para o reveal.js."
 }
