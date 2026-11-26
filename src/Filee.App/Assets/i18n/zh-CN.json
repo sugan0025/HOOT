@@ -19,11 +19,11 @@
   "tray.quit": "退出",
   "tray.update": "更新到 {0}",
   "tray.tooltip": "HOOT：按住 {0} 拖动文件",
-    "tray.blob.nap_30": "Nap Blob for 30 minutes",
-    "tray.blob.quiet_quips": "Quiet app quips for 1 hour",
-    "tray.blob.show": "Show Desktop Blob companion",
-    "tray.blob.nap_60": "Nap Blob for 1 hour",
-    "tray.blob.hide": "Hide Desktop Blob companion",
+  "tray.blob.nap_30": "Nap Blob for 30 minutes",
+  "tray.blob.quiet_quips": "Quiet app quips for 1 hour",
+  "tray.blob.show": "Show Desktop Blob companion",
+  "tray.blob.nap_60": "Nap Blob for 1 hour",
+  "tray.blob.hide": "Hide Desktop Blob companion",
   "close.title": "让 HOOT 继续运行吗？",
   "close.text": "保留在托盘中时，环形工具栏和自动转换文件夹会继续工作。\n之后可以在 设置 → 常规 中更改。",
   "close.tray": "保留在托盘",
@@ -175,7 +175,6 @@
   "notice.geo_shapefile_split": "Shapefile 只能保存一种形状，因此点、线、面被分别存成了多个文件",
   "notice.geo_heights_dropped": "部分点没有高度，而 Shapefile 无法只省略其中一个点的高度，因此已省略所有高度",
   "notice.osm_incomplete": "部分线和区域用到了文件中没有的点（截取的局部数据），因此已省略",
-
   "engine.reason.not_installed": "未安装",
   "engine.reason.error": "检查时出错",
   "engine.reason.unsupported_platform": "此平台不可用",
@@ -216,13 +215,6 @@
   "engine.font.description": "TTF、OTF、WOFF、WOFF2 和 EOT 相互转换；将 Windows 位图字体（FON）转换为这些格式。",
   "engine.cad.name": "CAD (built-in)",
   "engine.cad.description": "AutoCAD 图纸：DWG ↔ DXF，并可转为 PDF、SVG 和 PNG。",
-<<<<<<< HEAD
-=======
-  "engine.gcode.name": "G-code (built-in)",
-  "engine.gcode.description": "将 3D 打印机和 CNC 机床的刀路 (G-code) 转为 PDF、SVG 和图片，或使用切片软件保存的预览图。",
-  "engine.slides-md.name": "幻灯片转 Markdown (built-in)",
-  "engine.slides-md.description": "PowerPoint 幻灯片（PPTX、PPTM、POTX、PPSX）转为 Markdown，每张幻灯片一节：保留标题、列表、表格、图片和演讲者备注，可直接用于 reveal.js。",
->>>>>>> d71ede58 (feat(slides): write PowerPoint slides as reveal.js Markdown)
   "engine.model3d.name": "3D models (built-in)",
   "engine.model3d.description": "GLB、glTF、STL、OBJ、3MF 和 PLY 3D 模型互相转换，FBX 可转换为其中任意格式，并可生成 PNG 预览。",
   "engine.geo.name": "Geospatial vector data (built-in)",
@@ -1148,7 +1140,6 @@
   "engines.copy_links": "复制下载链接",
   "engines.links_copied": "下载链接已复制到剪贴板。请在能联网的电脑上下载这些文件，然后在这里选择 离线 → 从已下载的文件安装。",
   "engines.state.copying": "复制中 {0}%",
-
   "about.title": "关于",
   "about.updates": "更新",
   "common.search": "搜索",
@@ -1589,5 +1580,7 @@
   "pdf_text_editor.status_replaced": "Text replaced on the working copy. Save As to export it.",
   "pdf_text_editor.status_saved": "Saved {0}",
   "pdf_text_editor.choose_pdf": "Choose a PDF file to edit its existing text.",
-  "pdf_text_editor.status_wait": "Please wait for the current PDF operation to finish."
+  "pdf_text_editor.status_wait": "Please wait for the current PDF operation to finish.",
+  "engine.slides-md.name": "幻灯片转 Markdown (built-in)",
+  "engine.slides-md.description": "PowerPoint 幻灯片（PPTX、PPTM、POTX、POTM、PPSX）转为 Markdown，每张幻灯片一节：保留标题、列表、表格、图片和演讲者备注，可直接用于 reveal.js。"
 }

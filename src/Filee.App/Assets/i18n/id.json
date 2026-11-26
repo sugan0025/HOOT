@@ -19,11 +19,11 @@
   "tray.quit": "Keluar",
   "tray.update": "Perbarui ke {0}",
   "tray.tooltip": "HOOT: tahan {0} dan seret file",
-    "tray.blob.nap_30": "Nap Blob for 30 minutes",
-    "tray.blob.quiet_quips": "Quiet app quips for 1 hour",
-    "tray.blob.show": "Show Desktop Blob companion",
-    "tray.blob.nap_60": "Nap Blob for 1 hour",
-    "tray.blob.hide": "Hide Desktop Blob companion",
+  "tray.blob.nap_30": "Nap Blob for 30 minutes",
+  "tray.blob.quiet_quips": "Quiet app quips for 1 hour",
+  "tray.blob.show": "Show Desktop Blob companion",
+  "tray.blob.nap_60": "Nap Blob for 1 hour",
+  "tray.blob.hide": "Hide Desktop Blob companion",
   "close.title": "Biarkan HOOT tetap berjalan?",
   "close.text": "Di baki sistem, toolbar donut dan folder pantau tetap bekerja.\nAnda dapat mengubah ini nanti di Pengaturan → Umum.",
   "close.tray": "Tetap di baki sistem",
@@ -215,13 +215,6 @@
   "engine.font.description": "Font: TTF, OTF, WOFF, WOFF2, dan EOT saling konversi; font bitmap Windows (FON) ke format tersebut.",
   "engine.cad.name": "CAD (bawaan)",
   "engine.cad.description": "Gambar AutoCAD: DWG ↔ DXF, dan keduanya ke PDF, SVG, serta PNG.",
-<<<<<<< HEAD
-=======
-  "engine.gcode.name": "G-code (bawaan)",
-  "engine.gcode.description": "Jalur printer 3D dan mesin CNC (G-code) ke PDF, SVG, dan gambar, atau pratinjau dari slicer.",
-  "engine.slides-md.name": "Slide ke Markdown (bawaan)",
-  "engine.slides-md.description": "Slide PowerPoint (PPTX, PPTM, POTX, PPSX) ke Markdown, satu bagian per slide: judul, daftar, tabel, gambar, dan catatan pembicara, siap untuk reveal.js.",
->>>>>>> d71ede58 (feat(slides): write PowerPoint slides as reveal.js Markdown)
   "engine.model3d.name": "Model 3D (bawaan)",
   "engine.model3d.description": "Model 3D: GLB, glTF, STL, OBJ, 3MF, dan PLY saling konversi, FBX ke format mana pun, serta pratinjau gambar PNG.",
   "engine.geo.name": "Data vektor geospasial (bawaan)",
@@ -1587,5 +1580,7 @@
   "pdf_text_editor.status_replaced": "Text replaced on the working copy. Save As to export it.",
   "pdf_text_editor.status_saved": "Saved {0}",
   "pdf_text_editor.choose_pdf": "Choose a PDF file to edit its existing text.",
-  "pdf_text_editor.status_wait": "Please wait for the current PDF operation to finish."
+  "pdf_text_editor.status_wait": "Please wait for the current PDF operation to finish.",
+  "engine.slides-md.name": "Slide ke Markdown (bawaan)",
+  "engine.slides-md.description": "Slide PowerPoint (PPTX, PPTM, POTX, POTM, PPSX) ke Markdown, satu bagian per slide: judul, daftar, tabel, gambar, dan catatan pembicara, siap untuk reveal.js."
 }

@@ -19,11 +19,11 @@
   "tray.quit": "Beenden",
   "tray.update": "Auf {0} aktualisieren",
   "tray.tooltip": "HOOT: {0} gedrückt halten und Dateien ziehen",
-    "tray.blob.nap_30": "Nap Blob for 30 minutes",
-    "tray.blob.quiet_quips": "Quiet app quips for 1 hour",
-    "tray.blob.show": "Show Desktop Blob companion",
-    "tray.blob.nap_60": "Nap Blob for 1 hour",
-    "tray.blob.hide": "Hide Desktop Blob companion",
+  "tray.blob.nap_30": "Nap Blob for 30 minutes",
+  "tray.blob.quiet_quips": "Quiet app quips for 1 hour",
+  "tray.blob.show": "Show Desktop Blob companion",
+  "tray.blob.nap_60": "Nap Blob for 1 hour",
+  "tray.blob.hide": "Hide Desktop Blob companion",
   "close.title": "HOOT weiter ausführen?",
   "close.text": "Im Infobereich bleiben Ringmenü und Ordnerüberwachung aktiv.\nDas lässt sich später unter Einstellungen → Allgemein ändern.",
   "close.tray": "Im Infobereich behalten",
@@ -215,13 +215,6 @@
   "engine.font.description": "TTF, OTF, WOFF, WOFF2 und EOT untereinander konvertieren; Windows-Bitmap-Schriftarten (FON) in diese Formate umwandeln.",
   "engine.cad.name": "CAD (integriert)",
   "engine.cad.description": "AutoCAD-Zeichnungen: DWG ↔ DXF und beide in PDF, SVG und PNG.",
-<<<<<<< HEAD
-=======
-  "engine.gcode.name": "G-code (integriert)",
-  "engine.gcode.description": "Werkzeugwege von 3D-Druckern und CNC-Maschinen (G-Code) als PDF, SVG und Bild, oder die Vorschau des Slicers.",
-  "engine.slides-md.name": "Folien zu Markdown (integriert)",
-  "engine.slides-md.description": "PowerPoint-Folien (PPTX, PPTM, POTX, PPSX) als Markdown, ein Abschnitt pro Folie: Titel, Listen, Tabellen, Bilder und Sprechernotizen, bereit für reveal.js.",
->>>>>>> d71ede58 (feat(slides): write PowerPoint slides as reveal.js Markdown)
   "engine.model3d.name": "3D-Modelle (integriert)",
   "engine.model3d.description": "3D-Modelle: Konvertiert GLB, glTF, STL, OBJ, 3MF und PLY untereinander, FBX in jedes dieser Formate und erstellt eine PNG-Vorschau.",
   "engine.geo.name": "Vektor-Geodaten (integriert)",
@@ -1587,5 +1580,7 @@
   "pdf_text_editor.status_replaced": "Text replaced on the working copy. Save As to export it.",
   "pdf_text_editor.status_saved": "Saved {0}",
   "pdf_text_editor.choose_pdf": "Choose a PDF file to edit its existing text.",
-  "pdf_text_editor.status_wait": "Please wait for the current PDF operation to finish."
+  "pdf_text_editor.status_wait": "Please wait for the current PDF operation to finish.",
+  "engine.slides-md.name": "Folien zu Markdown (integriert)",
+  "engine.slides-md.description": "PowerPoint-Folien (PPTX, PPTM, POTX, POTM, PPSX) als Markdown, ein Abschnitt pro Folie: Titel, Listen, Tabellen, Bilder und Sprechernotizen, bereit für reveal.js."
 }

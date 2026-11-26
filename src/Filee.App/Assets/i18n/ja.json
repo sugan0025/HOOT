@@ -19,11 +19,11 @@
   "tray.quit": "終了",
   "tray.update": "{0}に更新",
   "tray.tooltip": "HOOT：{0}を押しながらファイルをドラッグ",
-    "tray.blob.nap_30": "Nap Blob for 30 minutes",
-    "tray.blob.quiet_quips": "Quiet app quips for 1 hour",
-    "tray.blob.show": "Show Desktop Blob companion",
-    "tray.blob.nap_60": "Nap Blob for 1 hour",
-    "tray.blob.hide": "Hide Desktop Blob companion",
+  "tray.blob.nap_30": "Nap Blob for 30 minutes",
+  "tray.blob.quiet_quips": "Quiet app quips for 1 hour",
+  "tray.blob.show": "Show Desktop Blob companion",
+  "tray.blob.nap_60": "Nap Blob for 1 hour",
+  "tray.blob.hide": "Hide Desktop Blob companion",
   "close.title": "HOOTを起動したままにしますか？",
   "close.text": "タスクトレイに常駐させると、ドーナツメニューと\n監視フォルダーは引き続き動作します。\nこの設定は、あとから「設定」→「一般」で変更できます。",
   "close.tray": "タスクトレイに常駐",
@@ -215,13 +215,6 @@
   "engine.font.description": "TTF、OTF、WOFF、WOFF2、EOTを相互変換し、Windowsビットマップフォント（FON）もこれらの形式に変換します。",
   "engine.cad.name": "CAD (built-in)",
   "engine.cad.description": "AutoCAD図面に対応します。DWGとDXFの相互変換、および両形式からPDF、SVG、PNGへの変換ができます。",
-<<<<<<< HEAD
-=======
-  "engine.gcode.name": "G-code (built-in)",
-  "engine.gcode.description": "3D プリンターと CNC マシンのツールパス (G-code) を PDF、SVG、画像に。スライサーのプレビューも使えます。",
-  "engine.slides-md.name": "スライドを Markdown に (built-in)",
-  "engine.slides-md.description": "PowerPoint のスライド (PPTX、PPTM、POTX、PPSX) を Markdown に。スライドごとに区切り、タイトル、箇条書き、表、画像、発表者ノートを残します。reveal.js でそのまま使えます。",
->>>>>>> d71ede58 (feat(slides): write PowerPoint slides as reveal.js Markdown)
   "engine.model3d.name": "3D models (built-in)",
   "engine.model3d.description": "3Dモデル（GLB、glTF、STL、OBJ、3MF、PLY）を相互変換します。FBXから各形式への変換と、PNGプレビューの作成にも対応します。",
   "engine.geo.name": "Geospatial vector data (built-in)",
@@ -1587,5 +1580,7 @@
   "pdf_text_editor.status_replaced": "Text replaced on the working copy. Save As to export it.",
   "pdf_text_editor.status_saved": "Saved {0}",
   "pdf_text_editor.choose_pdf": "Choose a PDF file to edit its existing text.",
-  "pdf_text_editor.status_wait": "Please wait for the current PDF operation to finish."
+  "pdf_text_editor.status_wait": "Please wait for the current PDF operation to finish.",
+  "engine.slides-md.name": "スライドを Markdown に (built-in)",
+  "engine.slides-md.description": "PowerPoint のスライド (PPTX、PPTM、POTX、POTM、PPSX) を Markdown に。スライドごとに区切り、タイトル、箇条書き、表、画像、発表者ノートを残します。reveal.js でそのまま使えます。"
 }

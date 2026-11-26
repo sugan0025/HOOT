@@ -19,11 +19,11 @@
   "tray.quit": "Zakończ",
   "tray.update": "Aktualizuj do {0}",
   "tray.tooltip": "HOOT: przytrzymaj {0} i przeciągnij pliki",
-    "tray.blob.nap_30": "Nap Blob for 30 minutes",
-    "tray.blob.quiet_quips": "Quiet app quips for 1 hour",
-    "tray.blob.show": "Show Desktop Blob companion",
-    "tray.blob.nap_60": "Nap Blob for 1 hour",
-    "tray.blob.hide": "Hide Desktop Blob companion",
+  "tray.blob.nap_30": "Nap Blob for 30 minutes",
+  "tray.blob.quiet_quips": "Quiet app quips for 1 hour",
+  "tray.blob.show": "Show Desktop Blob companion",
+  "tray.blob.nap_60": "Nap Blob for 1 hour",
+  "tray.blob.hide": "Hide Desktop Blob companion",
   "close.title": "Zostawić HOOT uruchomione?",
   "close.text": "W zasobniku pasek-pierścień i obserwowane foldery dalej działają.\nMożesz to później zmienić w Ustawienia → Ogólne.",
   "close.tray": "Zostaw w zasobniku",
@@ -175,7 +175,6 @@
   "notice.geo_shapefile_split": "Shapefile przechowuje jeden rodzaj kształtu, więc punkty, linie i poligony zapisano w osobnych plikach",
   "notice.geo_heights_dropped": "Niektóre punkty nie mają wysokości, a Shapefile nie może pominąć tylko jednej, więc pominięto wszystkie wysokości",
   "notice.osm_incomplete": "Niektóre linie i obszary używają punktów, których nie ma w pliku (wycięty fragment), więc je pominięto",
-
   "engine.reason.not_installed": "Nie zainstalowano",
   "engine.reason.error": "Błąd podczas sprawdzania",
   "engine.reason.unsupported_platform": "Niedostępne na tej platformie",
@@ -216,13 +215,6 @@
   "engine.font.description": "Konwertuje między TTF, OTF, WOFF, WOFF2 i EOT; konwertuje bitmapowe czcionki Windows (FON) do tych formatów.",
   "engine.cad.name": "CAD (built-in)",
   "engine.cad.description": "Rysunki AutoCAD: DWG ↔ DXF, oba także do PDF, SVG i PNG.",
-<<<<<<< HEAD
-=======
-  "engine.gcode.name": "G-code (built-in)",
-  "engine.gcode.description": "Ścieżki drukarek 3D i maszyn CNC (G-code) do PDF, SVG i obrazów albo podgląd zapisany przez slicer.",
-  "engine.slides-md.name": "Slajdy do Markdown (built-in)",
-  "engine.slides-md.description": "Slajdy PowerPoint (PPTX, PPTM, POTX, PPSX) jako Markdown, jedna sekcja na slajd: tytuły, listy, tabele, obrazy i notatki prelegenta, gotowe dla reveal.js.",
->>>>>>> d71ede58 (feat(slides): write PowerPoint slides as reveal.js Markdown)
   "engine.model3d.name": "3D models (built-in)",
   "engine.model3d.description": "Modele 3D: GLB, glTF, STL, OBJ, 3MF i PLY między sobą, FBX do każdego z nich oraz podgląd PNG.",
   "engine.geo.name": "Geospatial vector data (built-in)",
@@ -1148,7 +1140,6 @@
   "engines.copy_links": "Kopiuj linki do pobrania",
   "engines.links_copied": "Linki do pobrania są w schowku. Pobierz pliki na komputerze z internetem, a potem wybierz tutaj Offline → Zainstaluj z pobranych plików.",
   "engines.state.copying": "Kopiowanie {0}%",
-
   "about.title": "O programie",
   "about.updates": "Aktualizacje",
   "common.search": "Szukaj",
@@ -1589,5 +1580,7 @@
   "pdf_text_editor.status_replaced": "Text replaced on the working copy. Save As to export it.",
   "pdf_text_editor.status_saved": "Saved {0}",
   "pdf_text_editor.choose_pdf": "Choose a PDF file to edit its existing text.",
-  "pdf_text_editor.status_wait": "Please wait for the current PDF operation to finish."
+  "pdf_text_editor.status_wait": "Please wait for the current PDF operation to finish.",
+  "engine.slides-md.name": "Slajdy do Markdown (built-in)",
+  "engine.slides-md.description": "Slajdy PowerPoint (PPTX, PPTM, POTX, POTM, PPSX) jako Markdown, jedna sekcja na slajd: tytuły, listy, tabele, obrazy i notatki prelegenta, gotowe dla reveal.js."
 }

@@ -19,11 +19,11 @@
   "tray.quit": "إنهاء",
   "tray.update": "التحديث إلى {0}",
   "tray.tooltip": "HOOT: اضغط باستمرار على {0} واسحب الملفات",
-    "tray.blob.nap_30": "Nap Blob for 30 minutes",
-    "tray.blob.quiet_quips": "Quiet app quips for 1 hour",
-    "tray.blob.show": "Show Desktop Blob companion",
-    "tray.blob.nap_60": "Nap Blob for 1 hour",
-    "tray.blob.hide": "Hide Desktop Blob companion",
+  "tray.blob.nap_30": "Nap Blob for 30 minutes",
+  "tray.blob.quiet_quips": "Quiet app quips for 1 hour",
+  "tray.blob.show": "Show Desktop Blob companion",
+  "tray.blob.nap_60": "Nap Blob for 1 hour",
+  "tray.blob.hide": "Hide Desktop Blob companion",
   "close.title": "هل تريد إبقاء HOOT قيد التشغيل؟",
   "close.text": "يستمر شريط الأدوات الدائري ومراقبة المجلدات في العمل عند إبقاء التطبيق في منطقة الإعلام.\nيمكنك تغيير ذلك لاحقًا من الإعدادات ← عام.",
   "close.tray": "إبقاء في منطقة الإعلام",
@@ -215,13 +215,6 @@
   "engine.font.description": "تحويل TTF وOTF وWOFF وWOFF2 وEOT فيما بينها، وتحويل خطوط Windows النقطية (FON) إلى هذه الصيغ أيضًا.",
   "engine.cad.name": "CAD (built-in)",
   "engine.cad.description": "رسومات AutoCAD: التحويل بين DWG وDXF، وتحويل كليهما إلى PDF وSVG وPNG.",
-<<<<<<< HEAD
-=======
-  "engine.gcode.name": "G-code (built-in)",
-  "engine.gcode.description": "مسارات الطابعات ثلاثية الأبعاد وآلات CNC (G-code) إلى PDF وSVG وصور، أو معاينة برنامج التقطيع.",
-  "engine.slides-md.name": "الشرائح إلى Markdown (built-in)",
-  "engine.slides-md.description": "شرائح PowerPoint (PPTX وPPTM وPOTX وPPSX) إلى Markdown، قسم لكل شريحة: العناوين والقوائم والجداول والصور وملاحظات المتحدث، جاهزة لـ reveal.js.",
->>>>>>> d71ede58 (feat(slides): write PowerPoint slides as reveal.js Markdown)
   "engine.model3d.name": "3D models (built-in)",
   "engine.model3d.description": "التحويل بين النماذج ثلاثية الأبعاد: GLB وglTF وSTL وOBJ و3MF وPLY، وتحويل FBX إلى أي منها، وإنشاء معاينة PNG.",
   "engine.geo.name": "Geospatial vector data (built-in)",
@@ -1587,5 +1580,7 @@
   "pdf_text_editor.status_replaced": "Text replaced on the working copy. Save As to export it.",
   "pdf_text_editor.status_saved": "Saved {0}",
   "pdf_text_editor.choose_pdf": "Choose a PDF file to edit its existing text.",
-  "pdf_text_editor.status_wait": "Please wait for the current PDF operation to finish."
+  "pdf_text_editor.status_wait": "Please wait for the current PDF operation to finish.",
+  "engine.slides-md.name": "الشرائح إلى Markdown (built-in)",
+  "engine.slides-md.description": "شرائح PowerPoint (PPTX وPPTM وPOTX وPOTM وPPSX) إلى Markdown، قسم لكل شريحة: العناوين والقوائم والجداول والصور وملاحظات المتحدث، جاهزة لـ reveal.js."
 }

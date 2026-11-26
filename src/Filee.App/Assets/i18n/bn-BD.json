@@ -215,13 +215,6 @@
   "engine.font.description": "ফন্ট: TTF, OTF, WOFF, WOFF2 এবং EOT একে অপরে রূপান্তর; এগুলোতে Windows বিটম্যাপ ফন্ট (FON) এ রূপান্তর।",
   "engine.cad.name": "CAD (বিল্ট-ইন)",
   "engine.cad.description": "AutoCAD ড্রয়িং: DWG ↔ DXF, এবং দুটো থেকেই পিডিএফ, SVG ও PNG।",
-<<<<<<< HEAD
-=======
-  "engine.gcode.name": "G-code (বিল্ট-ইন)",
-  "engine.gcode.description": "3D প্রিন্টার ও CNC মেশিনের টুলপাথ (G-code) PDF, SVG ও ছবিতে, অথবা স্লাইসারের নিজের প্রিভিউ।",
-  "engine.slides-md.name": "স্লাইড থেকে Markdown (বিল্ট-ইন)",
-  "engine.slides-md.description": "PowerPoint স্লাইড (PPTX, PPTM, POTX, PPSX) থেকে Markdown, প্রতিটি স্লাইড একটি অংশ: শিরোনাম, তালিকা, টেবিল, ছবি ও বক্তার নোট, reveal.js-এর জন্য প্রস্তুত।",
->>>>>>> d71ede58 (feat(slides): write PowerPoint slides as reveal.js Markdown)
   "engine.model3d.name": "3D মডেল (বিল্ট-ইন)",
   "engine.model3d.description": "3D মডেল: GLB, glTF, STL, OBJ, 3MF এবং PLY একে অপরে রূপান্তর, যেকোনোটিতে FBX রূপান্তর এবং একটি PNG প্রিভিউ।",
   "engine.geo.name": "ভৌগোলিক ভেক্টর উপাত্ত (বিল্ট-ইন)",
@@ -1587,5 +1580,7 @@
   "pdf_text_editor.status_replaced": "Text replaced on the working copy. Save As to export it.",
   "pdf_text_editor.status_saved": "Saved {0}",
   "pdf_text_editor.choose_pdf": "Choose a PDF file to edit its existing text.",
-  "pdf_text_editor.status_wait": "Please wait for the current PDF operation to finish."
+  "pdf_text_editor.status_wait": "Please wait for the current PDF operation to finish.",
+  "engine.slides-md.name": "স্লাইড থেকে Markdown (বিল্ট-ইন)",
+  "engine.slides-md.description": "PowerPoint স্লাইড (PPTX, PPTM, POTX, POTM, PPSX) থেকে Markdown, প্রতিটি স্লাইড একটি অংশ: শিরোনাম, তালিকা, টেবিল, ছবি ও বক্তার নোট, reveal.js-এর জন্য প্রস্তুত।"
 }

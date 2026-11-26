@@ -19,11 +19,11 @@
   "tray.quit": "Çıkış",
   "tray.update": "{0} sürümüne güncelle",
   "tray.tooltip": "HOOT: {0} basılıyken dosyaları sürükleyin",
-    "tray.blob.nap_30": "Nap Blob for 30 minutes",
-    "tray.blob.quiet_quips": "Quiet app quips for 1 hour",
-    "tray.blob.show": "Show Desktop Blob companion",
-    "tray.blob.nap_60": "Nap Blob for 1 hour",
-    "tray.blob.hide": "Hide Desktop Blob companion",
+  "tray.blob.nap_30": "Nap Blob for 30 minutes",
+  "tray.blob.quiet_quips": "Quiet app quips for 1 hour",
+  "tray.blob.show": "Show Desktop Blob companion",
+  "tray.blob.nap_60": "Nap Blob for 1 hour",
+  "tray.blob.hide": "Hide Desktop Blob companion",
   "close.title": "HOOT çalışmaya devam etsin mi?",
   "close.text": "Sistem tepsisinde halka araç çubuğu ve klasör izleme çalışmaya devam eder.\nBunu daha sonra Ayarlar → Genel bölümünden değiştirebilirsiniz.",
   "close.tray": "Tepside çalıştır",
@@ -215,13 +215,6 @@
   "engine.font.description": "TTF, OTF, WOFF, WOFF2 ve EOT arasında dönüştürür; Windows bitmap yazı tiplerini (FON) bu biçimlere dönüştürür.",
   "engine.cad.name": "CAD (yerleşik)",
   "engine.cad.description": "AutoCAD çizimleri: DWG ↔ DXF ve her ikisinden PDF, SVG ve PNG.",
-<<<<<<< HEAD
-=======
-  "engine.gcode.name": "G-code (yerleşik)",
-  "engine.gcode.description": "3B yazıcıların ve CNC makinelerinin takım yolları (G-code) PDF, SVG ve resme, ya da dilimleyicinin kendi önizlemesi.",
-  "engine.slides-md.name": "Slaytlardan Markdown (yerleşik)",
-  "engine.slides-md.description": "PowerPoint slaytları (PPTX, PPTM, POTX, PPSX) her slayt bir bölüm olacak şekilde Markdown'a: başlıklar, listeler, tablolar, resimler ve konuşmacı notları, reveal.js için hazır.",
->>>>>>> d71ede58 (feat(slides): write PowerPoint slides as reveal.js Markdown)
   "engine.model3d.name": "3B modeller (yerleşik)",
   "engine.model3d.description": "3B modeller: GLB, glTF, STL, OBJ, 3MF ve PLY arasında dönüştürme; FBX'ten bunların tümüne ve PNG önizlemesine dönüştürme.",
   "engine.geo.name": "Coğrafi vektör verisi (yerleşik)",
@@ -1587,5 +1580,7 @@
   "pdf_text_editor.status_replaced": "Text replaced on the working copy. Save As to export it.",
   "pdf_text_editor.status_saved": "Saved {0}",
   "pdf_text_editor.choose_pdf": "Choose a PDF file to edit its existing text.",
-  "pdf_text_editor.status_wait": "Please wait for the current PDF operation to finish."
+  "pdf_text_editor.status_wait": "Please wait for the current PDF operation to finish.",
+  "engine.slides-md.name": "Slaytlardan Markdown (yerleşik)",
+  "engine.slides-md.description": "PowerPoint slaytları (PPTX, PPTM, POTX, POTM, PPSX) her slayt bir bölüm olacak şekilde Markdown'a: başlıklar, listeler, tablolar, resimler ve konuşmacı notları, reveal.js için hazır."
 }
