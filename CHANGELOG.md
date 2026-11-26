@@ -14,6 +14,15 @@ change, a language may repeat; a language without lines shows the English ones):
 - `recommended`: bug fixes. The card shows once per version.
 - `optional`: new features only. No card, the sidebar button only.
 
+## 3.0.5
+
+<!-- update
+level: recommended
+en: Unified PDF Editor with blank pages, image/signature stamping, direct PDF text editing, and one-click access from the Edit slice.
+-->
+
+- **Unified PDF Editor**: Dropping a PDF onto the **Edit** slice opens the unified PDF Editor directly without subwheels, combining page management, **+ Blank Page**, **+ Image / Signature** (add as page or stamp onto a page), **Pen / Highlight / Text** annotations, and **Edit PDF Text**.
+
 ## 3.0.4
 
 <!-- update

@@ -82,6 +82,7 @@ public sealed partial class PdfPageEditorViewModel : ObservableObject, IDisposab
     private readonly ILogger? _log;
     private readonly string _primarySource;
     private readonly IReadOnlyList<string> _initialFiles;
+    private readonly string _tempFolder;
     private readonly Dictionary<string, PdfPreviewSource> _previewSources = new(FileSystemPaths.Comparer);
     private readonly SemaphoreSlim _thumbnailGate = new(1, 1);
     private Task? _initialLoad;
@@ -106,10 +107,12 @@ public sealed partial class PdfPageEditorViewModel : ObservableObject, IDisposab
         _log = log;
         _primarySource = files.First();
         _initialFiles = files;
+        _tempFolder = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "Hoot", "PdfPageEdit", Guid.NewGuid().ToString("N"));
         SelectedPages.CollectionChanged += OnSelectedPagesChanged;
     }
 
     public ObservableCollection<PdfPageItem> Pages { get; } = [];
+    public ILocalizer Localizer => _loc;
 
     /// <summary>
     /// The pages selected in the strip (click, Ctrl + click, Shift + click), bound to the list box's selected items.
@@ -551,6 +554,98 @@ public sealed partial class PdfPageEditorViewModel : ObservableObject, IDisposab
         OnPropertyChanged(nameof(SelectedPreviewRotation));
     }
 
+    [RelayCommand]
+    private async Task AddBlankPageAsync()
+    {
+        if (IsBusy || _closed)
+            return;
+        var blankPath = System.IO.Path.Combine(_tempFolder, $"blank_{Guid.NewGuid():N}.pdf");
+        await Task.Run(() => PdfPageTools.CreateBlankPagePdf(blankPath));
+        await InsertFilesAsync([blankPath], after: true);
+        Status = "Added blank page.";
+    }
+
+    public async Task AddImagePagesAsync(IReadOnlyList<string> imagePaths)
+    {
+        if (imagePaths.Count == 0 || IsBusy || _closed)
+            return;
+        var pdfs = new List<string>();
+        foreach (var img in imagePaths)
+        {
+            var pdfPath = System.IO.Path.Combine(_tempFolder, $"imgpage_{Guid.NewGuid():N}.pdf");
+            await Task.Run(() => PdfPageTools.CreateImagePagePdf(img, pdfPath));
+            pdfs.Add(pdfPath);
+        }
+        await InsertFilesAsync(pdfs, after: true);
+        Status = $"Added {pdfs.Count} image page(s).";
+    }
+
+    public async Task StampImageOnSelectedPageAsync(string imagePath)
+    {
+        if (SelectedPage is not { } target || IsBusy || _closed)
+            return;
+        IsBusy = true;
+        Status = "Stamping image onto page...";
+        try
+        {
+            var stampedPath = System.IO.Path.Combine(_tempFolder, $"stamped_{Guid.NewGuid():N}.pdf");
+            await Task.Run(() => PdfPageTools.StampImageOnPage(target.Path, target.PageIndex, imagePath, stampedPath));
+            var previewSource = await Task.Run(() => PdfPreviewSource.Open(stampedPath));
+            _previewSources[stampedPath] = previewSource;
+
+            var index = Pages.IndexOf(target);
+            if (index >= 0)
+            {
+                var replacement = new PdfPageItem(previewSource, 0, _loc) { Rotation = target.Rotation };
+                foreach (var mark in target.Marks.Marks)
+                    replacement.Marks.Add(mark.Clone());
+                Pages[index] = replacement;
+                target.Dispose();
+                Select([replacement], replacement);
+                _ = LoadThumbnailsAsync([replacement]);
+            }
+            Status = "Image / signature stamped onto page.";
+        }
+        catch (Exception ex) when (ex is not OutOfMemoryException)
+        {
+            _log?.LogWarning(ex, "Could not stamp image onto PDF page");
+            Status = ex.Message;
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    public string CreateTempSinglePagePdfForSelected()
+    {
+        var target = SelectedPage ?? Pages.FirstOrDefault()
+            ?? throw new InvalidOperationException("No PDF page selected.");
+        var tempPdf = System.IO.Path.Combine(_tempFolder, $"textedit_{Guid.NewGuid():N}.pdf");
+        PdfPageTools.Save([target.Reference], tempPdf);
+        return tempPdf;
+    }
+
+    public async Task ApplyEditedSinglePagePdfAsync(PdfPageItem target, string editedPdfPath)
+    {
+        if (_closed || !File.Exists(editedPdfPath))
+            return;
+        var previewSource = await Task.Run(() => PdfPreviewSource.Open(editedPdfPath));
+        _previewSources[editedPdfPath] = previewSource;
+        var index = Pages.IndexOf(target);
+        if (index >= 0)
+        {
+            var replacement = new PdfPageItem(previewSource, 0, _loc);
+            foreach (var mark in target.Marks.Marks)
+                replacement.Marks.Add(mark.Clone());
+            Pages[index] = replacement;
+            target.Dispose();
+            Select([replacement], replacement);
+            _ = LoadThumbnailsAsync([replacement]);
+            Status = "Updated page with edited PDF text.";
+        }
+    }
+
     public Task<bool> SaveAsync() => WriteAsync(Pages, _preset, closeWhenDone: true);
 
     /// <summary>Saves the selected pages, in page order, as one new PDF; the editor stays open.</summary>
@@ -659,5 +754,8 @@ public sealed partial class PdfPageEditorViewModel : ObservableObject, IDisposab
         SelectedPreview = null;
         foreach (var page in Pages)
             page.Dispose();
+        try { if (Directory.Exists(_tempFolder)) Directory.Delete(_tempFolder, recursive: true); }
+        catch (IOException ex) { _log?.LogDebug(ex, "Could not remove temporary PDF editor folder"); }
+        catch (UnauthorizedAccessException ex) { _log?.LogDebug(ex, "Could not remove temporary PDF editor folder"); }
     }
 }

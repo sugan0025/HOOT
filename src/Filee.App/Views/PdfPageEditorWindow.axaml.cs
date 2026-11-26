@@ -23,6 +23,12 @@ public partial class PdfPageEditorWindow : Window
         AppleUniformTypeIdentifiers = ["com.adobe.pdf"],
     };
 
+    private static readonly FilePickerFileType ImageFiles = new("Images")
+    {
+        Patterns = ["*.png", "*.jpg", "*.jpeg", "*.webp", "*.bmp", "*.gif", "*.tif", "*.tiff"],
+        MimeTypes = ["image/png", "image/jpeg", "image/webp", "image/bmp", "image/gif", "image/tiff"],
+    };
+
     /// <summary>Pixels a press may move before it counts as a drag of the pages rather than a click.</summary>
     private const double DragThreshold = 6;
 
@@ -122,6 +128,61 @@ public partial class PdfPageEditorWindow : Window
     {
         if (DataContext is PdfPageEditorViewModel vm)
             await vm.ExtractSelectedAsync();
+    }
+
+    private async void OnAddImagePage(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not PdfPageEditorViewModel vm)
+            return;
+        var picked = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "Add image as PDF page",
+            AllowMultiple = true,
+            FileTypeFilter = [ImageFiles],
+        });
+        var paths = picked.Select(f => f.TryGetLocalPath()).OfType<string>().ToList();
+        if (paths.Count > 0)
+            await vm.AddImagePagesAsync(paths);
+    }
+
+    private async void OnStampImage(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not PdfPageEditorViewModel vm)
+            return;
+        var picked = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "Select image or signature to stamp",
+            AllowMultiple = false,
+            FileTypeFilter = [ImageFiles],
+        });
+        var path = picked.Select(f => f.TryGetLocalPath()).FirstOrDefault(p => p is not null);
+        if (path is not null)
+            await vm.StampImageOnSelectedPageAsync(path);
+    }
+
+    private async void OnEditPdfText(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not PdfPageEditorViewModel vm || vm.SelectedPage is not { } target || vm.IsBusy)
+            return;
+        try
+        {
+            var tempPdf = await Task.Run(() => vm.CreateTempSinglePagePdfForSelected());
+            var editedCopy = Path.Combine(Path.GetDirectoryName(tempPdf)!, $"edited_{Guid.NewGuid():N}.pdf");
+            var textVm = new PdfTextEditorViewModel(tempPdf, vm.Localizer);
+            var textWin = new PdfTextEditorWindow { DataContext = textVm };
+            textWin.Closing += (_, _) =>
+            {
+                if (File.Exists(textVm.WorkingPath))
+                    File.Copy(textVm.WorkingPath, editedCopy, overwrite: true);
+            };
+            await textWin.ShowDialog(this);
+            if (File.Exists(editedCopy))
+                await vm.ApplyEditedSinglePagePdfAsync(target, editedCopy);
+        }
+        catch (Exception ex) when (ex is not OutOfMemoryException)
+        {
+            vm.Status = ex.Message;
+        }
     }
 
     private async void OnSave(object? sender, RoutedEventArgs e)

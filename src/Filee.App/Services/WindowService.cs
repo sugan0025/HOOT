@@ -394,7 +394,7 @@ public sealed class WindowService(ILocalizer loc, IServiceProvider services, Mem
 
         }
 
-        else if (preset.Id == "tool-pdf-pages")
+        else if (preset.Id is "tool-pdf-pages" or "pdf-edit")
 
             ShowPdfPageEditor(files, preset);
 

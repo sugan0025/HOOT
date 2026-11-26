@@ -217,4 +217,66 @@ public static class PdfPageTools
             _ => (u0, 1 - v1, u1, 1 - v0),
         };
     }
+
+    /// <summary>Creates a single-page blank PDF (Letter size by default).</summary>
+    public static void CreateBlankPagePdf(string outputPath, double width = 612, double height = 792)
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outputPath))!);
+        using var document = new PdfDocument();
+        var page = document.AddPage();
+        page.Width = XUnit.FromPoint(width);
+        page.Height = XUnit.FromPoint(height);
+        document.Save(outputPath);
+    }
+
+    /// <summary>Creates a single-page PDF sized to hold the supplied image (PNG, JPG, WebP, BMP, etc.).</summary>
+    public static void CreateImagePagePdf(string imagePath, string outputPath)
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outputPath))!);
+        using var decoded = SKBitmap.Decode(imagePath)
+            ?? throw new InvalidDataException("Could not decode the selected image.");
+        using var imageStream = EncodePngStream(decoded);
+        using var xImage = XImage.FromStream(imageStream);
+        using var document = new PdfDocument();
+        var page = document.AddPage();
+        page.Width = XUnit.FromPoint(decoded.Width * 72.0 / 96.0);
+        page.Height = XUnit.FromPoint(decoded.Height * 72.0 / 96.0);
+        using var gfx = XGraphics.FromPdfPage(page);
+        gfx.DrawImage(xImage, 0, 0, page.Width.Point, page.Height.Point);
+        document.Save(outputPath);
+    }
+
+    /// <summary>Stamps an image or signature onto a single page copy and saves it to <paramref name="outputPdfPath"/>.</summary>
+    public static void StampImageOnPage(string sourcePdfPath, int pageIndex, string imagePath, string outputPdfPath,
+        double leftFraction = 0.62, double topFraction = 0.78, double widthFraction = 0.28)
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outputPdfPath))!);
+        Save([new PdfPageReference(sourcePdfPath, pageIndex)], outputPdfPath);
+
+        using var decoded = SKBitmap.Decode(imagePath)
+            ?? throw new InvalidDataException("Could not decode the selected image.");
+        using var imageStream = EncodePngStream(decoded);
+        using var xImage = XImage.FromStream(imageStream);
+
+        using var document = PdfSharpConverter.OpenForChanges(outputPdfPath);
+        var page = document.Pages[0];
+        var pageWidth = page.Width.Point;
+        var pageHeight = page.Height.Point;
+        var drawWidth = Math.Max(24, pageWidth * Math.Clamp(widthFraction, 0.05, 0.9));
+        var drawHeight = drawWidth * ((double)decoded.Height / Math.Max(1, decoded.Width));
+        var x = Math.Clamp(pageWidth * leftFraction, 0, Math.Max(0, pageWidth - drawWidth));
+        var y = Math.Clamp(pageHeight * topFraction, 0, Math.Max(0, pageHeight - drawHeight));
+
+        using var gfx = XGraphics.FromPdfPage(page, XGraphicsPdfPageOptions.Append);
+        gfx.DrawImage(xImage, x, y, drawWidth, drawHeight);
+        document.Save(outputPdfPath);
+    }
+
+    private static MemoryStream EncodePngStream(SKBitmap bitmap)
+    {
+        using var data = bitmap.Encode(SKEncodedImageFormat.Png, 100);
+        var stream = new MemoryStream(data.ToArray());
+        stream.Position = 0;
+        return stream;
+    }
 }

@@ -91,9 +91,8 @@ public static class BuiltInData
         },
         new()
         {
-            Id = "pdf-edit", NameKey = "preset.group_pdf_edit", TargetFormat = Preset.GroupTarget,
-            Kind = PresetKind.Group,
-            SubPresetIds = ["tool-pdf-crop", "pdf-rotate-left", "pdf-rotate-right", "tool-pdf-pages", "pdf-split", "tool-pdf-add", "tool-pdf-text"],
+            Id = "pdf-edit", NameKey = "preset.group_pdf_edit", TargetFormat = SameAsSource,
+            Kind = PresetKind.Tool, Output = { FileNamePattern = "{name}_edited" },
         },
         .. PdfSheetPresets(),
         .. ImageToolPresets(),

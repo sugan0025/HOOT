@@ -41,6 +41,22 @@
             <TextBlock Text="{DynamicResource pdf_editor.add}" />
           </StackPanel>
         </Button>
+        <Button Margin="0,0,6,6" Command="{Binding AddBlankPageCommand}" Content="+ Blank Page" />
+        <Button Margin="0,0,6,6">
+          <StackPanel Orientation="Horizontal" Spacing="5">
+            <TextBlock Text="+ Image / Signature" />
+            <PathIcon Width="11" Height="11" Data="{StaticResource Icon.ChevronRight}" RenderTransform="rotate(90deg)"
+                      Foreground="{DynamicResource TextSecondaryBrush}" />
+          </StackPanel>
+          <Button.Flyout>
+            <MenuFlyout Placement="BottomEdgeAlignedLeft">
+              <MenuItem Header="Stamp Image / Signature onto Page..." Click="OnStampImage" />
+              <MenuItem Header="Add Image as New Page..." Click="OnAddImagePage" />
+            </MenuFlyout>
+          </Button.Flyout>
+        </Button>
+        <Button Margin="0,0,6,6" Classes="accent" Click="OnEditPdfText" IsEnabled="{Binding HasSelection}"
+                Content="Edit PDF Text" />
         <Button Margin="0,0,6,6" IsEnabled="{Binding HasSelection}">
           <StackPanel Orientation="Horizontal" Spacing="5">
             <TextBlock Text="{DynamicResource pdf_editor.insert}" />

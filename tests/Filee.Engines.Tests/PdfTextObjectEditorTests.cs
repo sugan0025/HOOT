@@ -80,6 +80,34 @@ public sealed class PdfTextObjectEditorTests(EngineFixture fixture) : IClassFixt
         Assert.InRange(revised.Left, 68, 76);
     }
 
+    [Fact]
+    public void Creates_blank_page_image_page_and_stamps_image_onto_pdf_page()
+    {
+        var folder = fixture.NewFolder();
+        var blankPdf = Path.Combine(folder, "blank.pdf");
+        var imgPath = Path.Combine(folder, "sig.png");
+        var imgPdf = Path.Combine(folder, "imgpage.pdf");
+        var stampedPdf = Path.Combine(folder, "stamped.pdf");
+
+        PdfPageTools.CreateBlankPagePdf(blankPdf);
+        Assert.Equal(1, PdfPageTools.PageCount(blankPdf));
+
+        using (var bmp = new SkiaSharp.SKBitmap(120, 40))
+        {
+            using var canvas = new SkiaSharp.SKCanvas(bmp);
+            canvas.Clear(SkiaSharp.SKColors.DarkBlue);
+            using var data = bmp.Encode(SkiaSharp.SKEncodedImageFormat.Png, 100);
+            File.WriteAllBytes(imgPath, data.ToArray());
+        }
+
+        PdfPageTools.CreateImagePagePdf(imgPath, imgPdf);
+        Assert.Equal(1, PdfPageTools.PageCount(imgPdf));
+
+        PdfPageTools.StampImageOnPage(blankPdf, 0, imgPath, stampedPdf);
+        Assert.Equal(1, PdfPageTools.PageCount(stampedPdf));
+        Assert.NotEmpty(PdfPreviewDocument.Open(stampedPdf).RenderPage(1, 200, TestContext.Current.CancellationToken).Png);
+    }
+
     private static void WriteSimplePdf(string path, string text) =>
         WriteRawContentPdf(path, $"BT /F1 18 Tf 72 700 Td ({text}) Tj ET\n");
 
