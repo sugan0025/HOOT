@@ -14,43 +14,29 @@ change, a language may repeat; a language without lines shows the English ones):
 - `recommended`: bug fixes. The card shows once per version.
 - `optional`: new features only. No card, the sidebar button only.
 
+## 3.0.4
+
+<!-- update
+level: recommended
+en: Formatting, alignment, and OCR fixes for DOCX, PowerPoint, slanted PDFs, and 16-bit images, plus an interactive PDF text editor.
+-->
+
+- **Interactive PDF text editor**: Click or drag directly on text in the PDF page preview to select words or phrases, replace text (with automatic vector fallback for subsetted/CID fonts), delete text objects, add new vector text at any position, and undo edits before saving.
+- **Word → PDF paragraph & header borders** (#1700): Bottom borders on header paragraphs, shared borders between adjacent paragraphs, and paragraph-to-border spacing now render in PDF exports.
+- **PowerPoint → Markdown for reveal.js** (#1702): Presentations convert into slide-delimited Markdown (`---`) with headings, nested lists, tables, pictures, and speaker notes.
+- **Searchable PDFs scanned at an angle** (#1538): OCR text layers on slightly tilted or slanted scans now extract line-by-line into TXT, Markdown, DOCX, and HWPX.
+- **16-bit image depth clamping** (#1547): 8-bit-detail images read as 16-bit no longer produce oversized 16-bit/12-bit output files.
+- **Shortcut output placement** (#1706): Converting a desktop shortcut saves the output next to the shortcut instead of inside the target program's folder.
+
 ## 3.0.1
 
 <!-- update
 level: recommended
-<<<<<<< HEAD
 en: Reduce Windows companion graphics memory use and stop hidden Blob animation loops.
 -->
 
 - **Lower Windows graphics memory use**: HOOT now uses software rendering by default to avoid the native GPU memory growth observed with the animated companion on Intel graphics. The Blob's shape, colours, and optional 3D renderer are preserved. Memory savings vary by device and workload; larger previews may render more slowly. Set `FILEE_RENDERING=gpu` before starting HOOT to use the previous accelerated rendering defaults.
 - **Animation lifecycle**: Hidden, minimized, and animation-disabled Blobs stop their frame loops and resume when shown. Stale callbacks cannot start competing loops after a visibility change.
-=======
-ko: GitHub에서 업데이트 파일을 받지 못하면 Filee 다운로드 서버(dl.filee.sh)에서 받아요
-en: Updates come from Filee's download server (dl.filee.sh) when GitHub doesn't answer
-ko: 비스듬히 스캔하거나 찍은 페이지로 만든 검색 가능한 PDF도 TXT로 변환하면 텍스트가 나와요
-en: Searchable PDFs of pages scanned or photographed at an angle convert to TXT with their text
-ko: PowerPoint를 Markdown으로 바꾸면 슬라이드마다 한 구역이 되고 제목, 목록, 표, 그림, 발표자 노트가 남아요 (reveal.js)
-en: PowerPoint to Markdown keeps the slides, titles, lists, tables, pictures and speaker notes, ready for reveal.js
--->
-
-- **Updating from Settings → About works when GitHub's downloads don't answer** (#1593). The in-app update on Windows
-  gave up when GitHub's download link didn't answer within 20 seconds, which some networks hit every time. Filee now
-  takes the same file from its own download server (`dl.filee.sh`) instead, and the rest of that update goes there
-  first. Every file is still checked as before: the signed checksum list, the installer's checksum and its publisher,
-  so the server can only hand out the real installer. The log says where each file came from.
-  It helps from the update after this version on: on such a network, this version itself still comes from
-  [filee.sh](https://filee.sh/).
-- **Searchable PDFs of pages scanned at an angle convert to text** (#1538). A PDF made with Searchable PDF from a page
-  scanned or photographed a few degrees askew failed to convert to TXT with "The PDF contains no text", although other
-  PDF readers select its text: Tesseract writes each line along its slanted baseline, and Filee only read level text.
-  The recognized text now comes out line by line, also in Markdown without pictures and in a DOCX or HWPX made with
-  "Recognize text". PDFs with visible text read as before.
-- **PowerPoint → Markdown keeps the slides, ready for reveal.js** (#1702). A presentation converted to Markdown now
-  has one section per slide with `---` between them, the slide titles as headings, bullet and numbered lists at
-  their levels, links, bold and italic, tables, the pictures next to the file and the speaker notes after `Note:`,
-  which is what [reveal.js](https://revealjs.com/markdown/) reads. Before, the text of all slides ran together with
-  titles as plain paragraphs. Charts, SmartArt and equations aren't converted.
->>>>>>> d71ede58 (feat(slides): write PowerPoint slides as reveal.js Markdown)
 
 ## 3.0.3
 
